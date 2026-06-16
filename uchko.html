@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Учко</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0d1117;
+  --surface:   #13181f;
+  --card:      #181e27;
+  --border:    #1f2837;
+  --mat:       #4facfe;
+  --mat-soft:  rgba(79,172,254,0.10);
+  --mat-glow:  rgba(79,172,254,0.30);
+  --bel:       #f7b731;
+  --bel-soft:  rgba(247,183,49,0.10);
+  --bel-glow:  rgba(247,183,49,0.28);
+  --lit:       #a78bfa;
+  --lit-soft:  rgba(167,139,250,0.10);
+  --lit-glow:  rgba(167,139,250,0.30);
+  --user-bg:   #1a2235;
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --radius:    16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;min-height:100%;position:relative}
+
+/* ── SETUP ── */
+#setup{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px}
+.setup-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px 28px;text-align:center}
+.setup-gem{font-size:48px;margin-bottom:16px;display:block;filter:drop-shadow(0 0 18px rgba(167,139,250,0.5))}
+.setup-card h1{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;margin-bottom:6px;letter-spacing:-0.02em}
+.setup-card p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:24px}
+.setup-card input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;padding:11px 14px;outline:none;font-family:monospace;margin-bottom:12px;transition:border-color .2s}
+.setup-card input:focus{border-color:var(--lit)}
+.setup-card button{width:100%;background:linear-gradient(135deg,var(--lit),#7c3aed);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;padding:13px;cursor:pointer;transition:opacity .2s;font-family:'Space Grotesk',sans-serif}
+.setup-card button:hover{opacity:.88}
+.setup-note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5}
+
+/* ── HEADER ── */
+header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);z-index:20}
+.h-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--mat),var(--lit));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 14px rgba(167,139,250,.3)}
+.h-info{flex:1;min-width:0}
+.h-name{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.h-theme{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--lit);background:var(--lit-soft);border-radius:10px;padding:1px 8px;margin-top:2px}
+.h-btn{flex-shrink:0;background:none;border:1px solid var(--border);border-radius:20px;color:var(--muted);font-size:12px;padding:6px 12px;cursor:pointer;transition:all .18s;white-space:nowrap;font-family:'Inter',sans-serif}
+.h-btn:hover{border-color:var(--lit);color:var(--lit)}
+.h-btn-icon{padding:6px 10px}
+
+/* ── MESSAGES ── */
+#messages{padding:78px 14px 190px;display:flex;flex-direction:column;gap:12px;min-height:100vh}
+.day-label{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:4px 0}
+
+/* ── MISSION CARD WITH TABS ── */
+.mission-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease both}
+.tabs{display:flex;border-bottom:1px solid var(--border);position:sticky;top:63px;background:var(--card);z-index:5;border-radius:var(--radius) var(--radius) 0 0;overflow:hidden}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:11px 6px 9px;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;position:relative;transition:background .15s}
+.tab .tab-icon{font-size:17px;position:relative}
+.tab .tab-label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.tab .tab-count{font-size:9px;color:var(--muted);opacity:.7}
+.tab.active .tab-label{color:var(--text)}
+.tab .seen-check{display:none;position:absolute;top:-3px;right:-9px;font-size:10px}
+.tab.seen .seen-check{display:inline}
+.tab::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:2px;border-radius:2px;background:transparent;transition:background .2s}
+.tab[data-tab="mat"].active::after{background:var(--mat)}
+.tab[data-tab="bel"].active::after{background:var(--bel)}
+.tab[data-tab="lit"].active::after{background:var(--lit)}
+.tab[data-tab="mat"].active{background:var(--mat-soft)}
+.tab[data-tab="bel"].active{background:var(--bel-soft)}
+.tab[data-tab="lit"].active{background:var(--lit-soft)}
+.tab:hover:not(.active){background:rgba(255,255,255,0.02)}
+
+.tab-panel{padding:16px;scroll-margin-top:115px}
+.tab-panel + .tab-panel{border-top:1px solid var(--border)}
+.section-tag{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.tab-panel.mat .section-tag{color:var(--mat)}
+.tab-panel.bel .section-tag{color:var(--bel)}
+.tab-panel.lit .section-tag{color:var(--lit)}
+
+.task-row{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.task-row:last-child{border-bottom:none}
+.task-badge{flex-shrink:0;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-top:1px}
+.task-row.mat .task-badge{background:var(--mat-soft);color:var(--mat);border:1px solid rgba(79,172,254,0.35)}
+.task-row.bel .task-badge{background:var(--bel-soft);color:var(--bel);border:1px solid rgba(247,183,49,0.35)}
+.task-text{flex:1;font-size:14px;line-height:1.6;color:var(--text);padding-top:1px}
+
+/* lit panel special layout */
+.lit-card{background:var(--lit-soft);border:1px solid rgba(167,139,250,0.25);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.lit-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.lit-icon{font-size:22px;flex-shrink:0}
+.lit-work{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:var(--lit)}
+.lit-author{font-size:12px;color:var(--muted);margin-top:1px}
+.lit-time{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--lit);background:rgba(167,139,250,0.15);border-radius:10px;padding:2px 9px;margin-top:8px}
+.lit-poem{font-style:italic;font-size:13.5px;line-height:1.7;color:#cbd5e1;border-left:2px solid rgba(167,139,250,0.4);padding-left:12px;margin-top:10px;white-space:pre-wrap}
+.lit-questions{display:flex;flex-direction:column;gap:0}
+.task-row.lit .task-badge{background:var(--lit-soft);color:var(--lit);border:1px solid rgba(167,139,250,0.35)}
+
+.mission-footer{padding:11px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);border-radius:0 0 var(--radius) var(--radius)}
+
+/* ── CHAT BUBBLES ── */
+.msg{display:flex;flex-direction:column;max-width:82%;gap:3px;animation:fadeUp .25s ease both}
+.msg.coach{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.bubble{padding:11px 15px;border-radius:var(--radius);line-height:1.6;white-space:pre-wrap;word-break:break-word;font-size:14px}
+.coach .bubble{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:6px}
+.user .bubble{background:var(--user-bg);border:1px solid #243051;border-bottom-right-radius:6px;color:#c8d8ff}
+.msg-meta{font-size:10px;color:var(--muted);padding:0 4px}
+.coach .msg-meta{text-align:left}
+.user .msg-meta{text-align:right}
+.bubble img{max-width:220px;border-radius:10px;margin-top:8px;display:block}
+
+.typing-bubble{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);border-bottom-left-radius:6px;padding:14px 18px;display:flex;gap:5px;align-items:center}
+.typing-bubble span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite}
+.typing-bubble span:nth-child(2){animation-delay:.2s}
+.typing-bubble span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── QUICK REPLIES ── */
+#footer-area{position:fixed;bottom:0;left:0;right:0;z-index:20;background:var(--surface)}
+#quick-replies{display:flex;gap:7px;padding:8px 14px 8px;overflow-x:auto}
+#quick-replies:empty{padding:0}
+#quick-replies::-webkit-scrollbar{display:none}
+.qr{flex-shrink:0;font-size:12.5px;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;font-family:'Inter',sans-serif}
+.qr:hover{border-color:var(--lit);color:var(--lit);background:var(--lit-soft)}
+
+/* ── UPLOAD PREVIEW ── */
+#upload-preview{display:none;align-items:center;gap:10px;padding:8px 14px;background:var(--surface);border-top:1px solid var(--border)}
+#upload-preview.visible{display:flex}
+#preview-img{height:44px;border-radius:8px;object-fit:cover}
+#preview-name{font-size:12px;color:var(--muted);flex:1}
+#remove-upload{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1}
+
+/* ── INPUT ── */
+#input-area{display:flex;align-items:flex-end;gap:9px;padding:10px 14px 14px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+#user-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:10px 16px;resize:none;outline:none;max-height:130px;overflow-y:auto;line-height:1.4;transition:border-color .2s}
+#user-input::placeholder{color:var(--muted)}
+#user-input:focus{border-color:var(--lit)}
+#upload-btn{width:36px;height:36px;border-radius:50%;background:none;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);transition:all .2s}
+#upload-btn:hover{border-color:var(--mat);color:var(--mat)}
+#file-input{display:none}
+#send-btn{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--mat),var(--lit));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 0 12px var(--lit-glow)}
+#send-btn:hover{transform:scale(1.08);box-shadow:0 0 20px var(--lit-glow)}
+#send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+/* ── PROGRESS / ARCHIVE OVERLAY ── */
+#progress-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:150;display:none;align-items:flex-end;justify-content:center}
+#progress-overlay.visible{display:flex}
+.po-panel{width:100%;max-width:480px;max-height:88vh;background:var(--bg);border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:slideUp .25s ease both;border:1px solid var(--border);border-bottom:none}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.po-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;flex-shrink:0}
+.po-title{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700}
+.po-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px}
+.po-tabs{display:flex;gap:6px;padding:0 14px 12px;flex-shrink:0}
+.po-tab{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:12px;font-weight:600;padding:9px 6px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.po-tab.active{background:var(--lit-soft);border-color:rgba(167,139,250,0.4);color:var(--lit)}
+.po-body{flex:1;overflow-y:auto;padding:4px 18px 24px}
+.po-body::-webkit-scrollbar{width:3px}
+.po-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.po-note{font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:14px;line-height:1.5}
+
+/* history list */
+.hist-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.hist-card:hover{border-color:rgba(167,139,250,0.35)}
+.hist-top{display:flex;align-items:center;justify-content:space-between}
+.hist-date{font-size:12px;color:var(--muted)}
+.hist-theme{font-size:11px;color:var(--lit);display:flex;align-items:center;gap:4px}
+.hist-summary{font-size:13px;color:var(--text);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap}
+.hist-pill{font-size:11px;padding:2px 8px;border-radius:8px}
+.hist-pill.mat{background:var(--mat-soft);color:var(--mat)}
+.hist-pill.bel{background:var(--bel-soft);color:var(--bel)}
+.hist-pill.lit{background:var(--lit-soft);color:var(--lit)}
+
+/* reading checklist */
+.read-progress{font-size:12px;color:var(--muted);margin-bottom:12px}
+.read-group-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
+.read-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.read-check{flex-shrink:0;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
+.read-item.done .read-check{background:var(--lit);border-color:var(--lit);color:#fff}
+.read-text{font-size:13px;line-height:1.4}
+.read-item.done .read-text{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(100,116,139,0.4)}
+.read-author{color:var(--muted);font-size:11.5px}
+
+/* skills grid */
+.skill-group-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 8px}
+.skill-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.skill-code{flex-shrink:0;width:30px;font-size:11px;font-weight:700;color:var(--muted);font-family:'Space Grotesk',sans-serif}
+.skill-label{flex:1;font-size:12.5px;color:var(--text)}
+.skill-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%}
+.skill-dot.good{background:var(--lit);box-shadow:0 0 6px var(--lit-glow)}
+.skill-dot.some{background:var(--bel)}
+.skill-dot.none{background:var(--border)}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="setup-card">
+    <span class="setup-gem">💎</span>
+    <h1>Учко</h1>
+    <p>Твоят личен треньор за НВО.<br>Въведи Anthropic API ключ, за да започнем.</p>
+    <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+    <button id="start-btn">Влез →</button>
+    <p class="setup-note">Ключът се съхранява само в паметта на браузъра и не се изпраща никъде освен към Anthropic.</p>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="h-avatar">🎓</div>
+  <div class="h-info">
+    <div class="h-name">Учко</div>
+    <div class="h-theme" id="theme-chip">… </div>
+  </div>
+  <button class="h-btn h-btn-icon" id="progress-btn" title="Прогрес и архив">📊</button>
+  <button class="h-btn" id="new-mission-btn">🔄 Нова мисия</button>
+</header>
+
+<!-- MESSAGES -->
+<div id="messages"></div>
+
+<!-- FIXED FOOTER: quick replies + upload preview + input -->
+<div id="footer-area">
+  <div id="quick-replies"></div>
+
+  <div id="upload-preview">
+    <img id="preview-img" src="" alt="">
+    <span id="preview-name"></span>
+    <button id="remove-upload">✕</button>
+  </div>
+
+  <div id="input-area">
+    <button id="upload-btn" title="Качи снимка">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21,15 16,10 5,21"/>
+      </svg>
+    </button>
+    <input type="file" id="file-input" accept="image/*">
+    <textarea id="user-input" rows="1" placeholder="Напиши съобщение…"></textarea>
+    <button id="send-btn">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- PROGRESS / ARCHIVE OVERLAY -->
+<div id="progress-overlay">
+  <div class="po-panel">
+    <div class="po-header">
+      <div class="po-title">Прогрес</div>
+      <button class="po-close" id="po-close-btn">✕</button>
+    </div>
+    <div class="po-tabs">
+      <button class="po-tab active" data-po-tab="history">🗓️ История</button>
+      <button class="po-tab" data-po-tab="reading">📖 Четене</button>
+      <button class="po-tab" data-po-tab="skills">🎯 Умения</button>
+    </div>
+    <div class="po-body" id="po-body"></div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let API_KEY = '';
+let conversationHistory = [];
+let pendingImageBase64 = null;
+let pendingImageType = null;
+let isLoading = false;
+
+const DAILY_THEMES = [
+  { label: 'Кристална структура', emoji: '💎', hint: 'аметист и кристали' },
+  { label: 'Шахматна комбинация', emoji: '♟️', hint: 'шах' },
+  { label: 'Химичен опит', emoji: '🧪', hint: 'химия' },
+  { label: 'Геометрична разгъвка', emoji: '🔷', hint: '3D фигури' },
+  { label: 'Вулканичен минерал', emoji: '🌋', hint: 'минерали' },
+  { label: 'Октаедър', emoji: '🔮', hint: '3D фигури' },
+  { label: 'Кварцова решетка', emoji: '✨', hint: 'кристали' },
+];
+const todayTheme = DAILY_THEMES[new Date().getDay() % DAILY_THEMES.length];
+
+// ── DEMO DATA for Progress overlay (примерни данни — реалните ще идват от Google Sheets) ──
+const DEMO_HISTORY = [
+  { date:'15 юни', theme:{emoji:'♟️',label:'Шахматна комбинация'}, mat:5, bel:5, lit:{work:'„Косачи"', author:'Елин Пелин'} },
+  { date:'13 юни', theme:{emoji:'🧪',label:'Химичен опит'}, mat:5, bel:5, lit:{work:'„По жицата"', author:'Йордан Йовков'} },
+  { date:'12 юни', theme:{emoji:'💎',label:'Кристална структура'}, mat:5, bel:5, lit:{work:'„Хайдути"', author:'Христо Ботев'} },
+  { date:'11 юни', theme:{emoji:'🔷',label:'Геометрична разгъвка'}, mat:5, bel:5, lit:{work:'„Неразделни"', author:'Пенчо Славейков'} },
+];
+
+const REQUIRED_READING = [
+  { group:'Стихотворения и разкази', items:[
+    {t:'„Хайдути"', a:'Христо Ботев', done:true},
+    {t:'„На прощаване в 1868 г."', a:'Христо Ботев', done:false},
+    {t:'„Хубава си, моя горо"', a:'Любен Каравелов', done:false},
+    {t:'„Отечество любезно, как хубаво си ти!"', a:'Иван Вазов', done:false},
+    {t:'„Опълченците на Шипка"', a:'Иван Вазов', done:false},
+    {t:'„Българският език"', a:'Иван Вазов', done:false},
+    {t:'„Една българка"', a:'Иван Вазов', done:false},
+    {t:'„Стани, стани, юнак балкански"', a:'Добри Чинтулов', done:false},
+    {t:'„Вятър ечи, Балкан стене"', a:'Добри Чинтулов', done:false},
+    {t:'„Братчетата на Гаврош"', a:'Христо Смирненски', done:false},
+    {t:'„Серафим"', a:'Йордан Йовков', done:false},
+    {t:'„По жицата"', a:'Йордан Йовков', done:true},
+    {t:'„Косачи"', a:'Елин Пелин', done:true},
+    {t:'„По жътва"', a:'Елин Пелин', done:false},
+    {t:'„Художник"', a:'Веселин Ханчев', done:false},
+    {t:'„Неразделни"', a:'Пенчо Славейков', done:true},
+    {t:'„Заточеници"', a:'Пейо Яворов', done:false},
+  ]},
+  { group:'По-дълги творби', items:[
+    {t:'Из „Под игото" — „Представлението"', a:'Иван Вазов', done:false},
+    {t:'Из „Под игото" — „Радини вълнения"', a:'Иван Вазов', done:false},
+    {t:'Из „Немили-недраги"', a:'Иван Вазов', done:false},
+    {t:'Из „Бай Ганьо" — „Бай Ганьо пътува"', a:'Алеко Константинов', done:false},
+    {t:'Из „До Чикаго и назад"', a:'Алеко Константинов', done:false},
+  ]},
+];
+
+const SKILLS = [
+  { group:'Математика', items:[
+    {c:'М1',l:'Изчислителна грамотност',lvl:'good'},{c:'М2',l:'Алгебрично мислене',lvl:'good'},
+    {c:'М3',l:'Уравнения и неравенства',lvl:'some'},{c:'М4',l:'Проценти и пропорции',lvl:'good'},
+    {c:'М5',l:'Геометрия',lvl:'some'},{c:'М6',l:'Пространствено мислене',lvl:'none'},
+    {c:'М7',l:'Текстови задачи',lvl:'good'},{c:'М8',l:'Данни и вероятности',lvl:'none'},
+    {c:'М9',l:'Математическа обосновка',lvl:'some'},
+  ]},
+  { group:'Български език', items:[
+    {c:'Б1',l:'Части на речта',lvl:'good'},{c:'Б6',l:'Правопис',lvl:'good'},
+    {c:'Б7',l:'Членуване',lvl:'some'},{c:'Б8',l:'Пунктуация',lvl:'some'},
+    {c:'Б11',l:'Редактиране на текст',lvl:'none'},
+  ]},
+];
+
+// ── Progress overlay logic ──
+const progressOverlay = document.getElementById('progress-overlay');
+const progressBtn = document.getElementById('progress-btn');
+const poCloseBtn = document.getElementById('po-close-btn');
+const poBody = document.getElementById('po-body');
+
+progressBtn.addEventListener('click', () => {
+  progressOverlay.classList.add('visible');
+  renderPoTab('history');
+});
+poCloseBtn.addEventListener('click', () => progressOverlay.classList.remove('visible'));
+progressOverlay.addEventListener('click', e => { if(e.target===progressOverlay) progressOverlay.classList.remove('visible'); });
+
+document.querySelectorAll('.po-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.po-tab').forEach(t => t.classList.toggle('active', t===tab));
+    renderPoTab(tab.dataset.poTab);
+  });
+});
+
+function renderPoTab(name) {
+  if (name === 'history') renderHistoryTab();
+  else if (name === 'reading') renderReadingTab();
+  else renderSkillsTab();
+}
+
+function renderHistoryTab() {
+  poBody.innerHTML = `<div class="po-note">📋 Примерни данни — реалната история ще се пази в Google Sheets, веднъж свързан бекендът.</div>`;
+  DEMO_HISTORY.forEach(day => {
+    const card = document.createElement('div');
+    card.className = 'hist-card';
+    card.innerHTML = `
+      <div class="hist-top">
+        <span class="hist-date">${day.date}</span>
+        <span class="hist-theme">${day.theme.emoji} ${day.theme.label}</span>
+      </div>
+      <div class="hist-summary">
+        <span class="hist-pill mat">📐 ${day.mat} МАТ</span>
+        <span class="hist-pill bel">✍️ ${day.bel} БЕЛ</span>
+        <span class="hist-pill lit">📖 ${day.lit.work}</span>
+      </div>`;
+    poBody.appendChild(card);
+  });
+}
+
+function renderReadingTab() {
+  const total = REQUIRED_READING.reduce((s,g)=>s+g.items.length,0);
+  const done = REQUIRED_READING.reduce((s,g)=>s+g.items.filter(i=>i.done).length,0);
+  poBody.innerHTML = `<div class="read-progress">📚 Прочетени: <b>${done}/${total}</b> творби</div>`;
+  REQUIRED_READING.forEach(group => {
+    const label = document.createElement('div');
+    label.className = 'read-group-label';
+    label.textContent = group.group;
+    poBody.appendChild(label);
+    group.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = `read-item ${item.done ? 'done' : ''}`;
+      row.innerHTML = `<div class="read-check">${item.done ? '✓' : ''}</div><div class="read-text">${item.t} <span class="read-author">— ${item.a}</span></div>`;
+      poBody.appendChild(row);
+    });
+  });
+}
+
+function renderSkillsTab() {
+  poBody.innerHTML = `<div class="po-note">🎯 Примерни данни — нивото се определя автоматично от резултатите по всяка компетентност във времето.</div>`;
+  SKILLS.forEach(group => {
+    const label = document.createElement('div');
+    label.className = 'skill-group-label';
+    label.textContent = group.group;
+    poBody.appendChild(label);
+    group.items.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+      row.innerHTML = `<span class="skill-code">${s.c}</span><span class="skill-label">${s.l}</span><span class="skill-dot ${s.lvl}"></span>`;
+      poBody.appendChild(row);
+    });
+  });
+}
+
+
+const SYSTEM_PROMPT = `Ти си Учко — личен AI коуч по математика и БЕЛ за 12-годишен момче, което се подготвя за НВО в края на 7-ми клас в България. Работиш само на БЪЛГАРСКИ.
+
+ПРОФИЛ НА УЧЕНИКА:
+- На 12 г., завършва 6-ти клас
+- Математика: силен — давай задачи на ниво финална секция на НВО (най-трудно)
+- БЕЛ: силен старт — оценявай постепенно и адаптирай
+- Интереси: камъни и минерали, химия и опити, шах, 3D фигури
+- Обича да учи самостоятелно — не го натискай, дай му усещане за собствен избор
+
+ТОН:
+- Топъл, насърчаващ, но НЕ детски и НЕ покровителствен
+- Като по-готин по-голям братовчед, добър по математика
+- Леко чувство за хумор е добре дошло
+
+ПРАВИЛА ЗА ОБРАТНА ВРЪЗКА:
+- Винаги ПЪРВО нещо конкретно похвали
+- После посочи грешките с обяснение ЗАЩО са грешки
+- Никога не давай пълния отговор докато ученикът не е опитал поне веднъж
+- Ако е заседнал — давай подсказки, не решения
+
+АДАПТАЦИЯ:
+- 3 последователни верни → увеличи трудността или нов материал
+- 1+ грешки → върни се с по-лесна версия, после средна, после НВО ниво
+
+МАТЕМАТИКА — само материал, който детето вече е учило:
+УЧЕНО ДО КРАЯ НА 6-ТИ КЛАС (използвай свободно): числа (естествени, цели, рационални, степени, корени), изрази с променливи, уравнения от 1-ва степен, пропорции/проценти/лихви, триъгълник/четириъгълник/трапец (лице, периметър), Питагорова теорема, окръжност, координатна система, статистика.
+НОВО В 7-МИ КЛАС (само ако детето покаже, че го знае): неравенства, многочлени и разлагане на множители, системи уравнения, квадратна функция, подобни триъгълници, вписан/описан многоъгълник, призма/пирамида/конус/цилиндър, вероятности.
+СТРОГО ЗАБРАНЕНО: тригонометрия (sin, cos, tan), логаритми, производни, интеграли, комплексни числа.
+
+ЗАДЪЛЖИТЕЛНА ЛИТЕРАТУРА ЗА НВО:
+Стихотворения/разкази: „Хайдути" и „На прощаване в 1868 г." (Христо Ботев); „Хубава си, моя горо" (Любен Каравелов); „Отечество любезно...", „Опълченците на Шипка", „Българският език", „Една българка" (Иван Вазов); „Стани, стани, юнак балкански", „Вятър ечи, Балкан стене" (Добри Чинтулов); „Братчетата на Гаврош" (Христо Смирненски); „Серафим", „По жицата" (Йордан Йовков); „Косачи", „По жътва" (Елин Пелин); „Художник" (Веселин Ханчев); „Неразделни" (Пенчо Славейков); „Заточеници" (Пейо Яворов).
+По-дълги творби: Из „Под игото" — глави „Представлението" и „Радини вълнения" (Вазов); Из „Немили-недраги" — глави I, II, III, V, X, епилог (Вазов); Из „Бай Ганьо" — глава „Бай Ганьо пътува" (Алеко Константинов); Из „До Чикаго и назад" (Алеко Константинов).
+
+ЛОГИКА ЗА ЛИТЕРАТУРА: избери творба от списъка, обяви я директно (без да питаш дали е чел), дай времева оценка за четене, после въпросите веднага. НЕ цитирай и не възпроизвеждай текста на творбата (стихотворение или откъс) — ученикът вече има пълния списък с заглавия и автори и може сам да го открие и прочете. Само споменавай заглавие, автор и приблизително време за четене. Ротация — не повтаряй вече покрита творба.
+
+КОМПЕТЕНТНОСТИ ЗА РОТАЦИЯ:
+МАТ (М1-М9): изчисления, алгебра, уравнения/неравенства, проценти/пропорции, геометрия, пространствено мислене, текстови задачи, данни/вероятности, обосновка.
+БЕЛ (Б1-Б12): части на речта, глаголни форми, местоимения, части на изречението, просто/сложно изречение, правопис, членуване, пунктуация, речников запас, синоними/антоними, редактиране, езикова култура.
+Включвай елементи от Любопитство (Л8 пространствена визуализация — 3D фигури; Л9 стратегическо мислене — шах; Л10 минерали/природни науки) когато е възможно, особено във връзка с темата на деня.
+
+ФОРМАТ НА ОТГОВОРА:
+Когато получиш съобщение, което започва с "ГЕНЕРИРАЙ_МИСИЯ:", отговори САМО с валиден JSON по точно тази схема, без markdown fences, без текст преди или след JSON-а:
+{
+  "intro": "кратко поздравление, 1 изречение",
+  "mat": ["пълен текст на задача 1", "задача 2", "задача 3", "задача 4", "задача 5"],
+  "bel": ["задача 1", "задача 2", "задача 3", "задача 4", "задача 5"],
+  "lit": {
+    "work": "име на творбата",
+    "author": "автор",
+    "time_estimate": "~10 минути",
+    "questions": ["въпрос 1", "въпрос 2", "въпрос 3"]
+  },
+  "closing": "кратко напомняне за снимка до 17:00ч"
+}
+Във ВСИЧКИ останали съобщения (отговори на ученика, обратна връзка, въпроси) — отговаряй на чист разговорен български текст, БЕЗ JSON, без markdown форматиране (без **, без ##).`;
+
+// ── DOM refs ──
+const messagesEl = document.getElementById('messages');
+const inputEl    = document.getElementById('user-input');
+const sendBtn    = document.getElementById('send-btn');
+const quickRepliesEl = document.getElementById('quick-replies');
+const setupEl    = document.getElementById('setup');
+const apiKeyInput = document.getElementById('api-key-input');
+const startBtn   = document.getElementById('start-btn');
+const uploadBtn  = document.getElementById('upload-btn');
+const fileInput  = document.getElementById('file-input');
+const uploadPreview = document.getElementById('upload-preview');
+const previewImg = document.getElementById('preview-img');
+const previewName = document.getElementById('preview-name');
+const removeUpload = document.getElementById('remove-upload');
+const newMissionBtn = document.getElementById('new-mission-btn');
+const themeChip  = document.getElementById('theme-chip');
+
+themeChip.textContent = `${todayTheme.emoji} ${todayTheme.label}`;
+
+// ── Setup ──
+startBtn.addEventListener('click', () => {
+  const key = apiKeyInput.value.trim();
+  if (!key.startsWith('sk-ant-')) { apiKeyInput.style.borderColor='#f87171'; return; }
+  API_KEY = key;
+  setupEl.style.display = 'none';
+  startSession();
+});
+apiKeyInput.addEventListener('keydown', e => { if(e.key==='Enter') startBtn.click(); });
+
+function startSession() {
+  const today = new Date();
+  const days = ['неделя','понеделник','вторник','сряда','четвъртък','петък','събота'];
+  addDayLabel(`${days[today.getDay()]}, ${today.toLocaleDateString('bg-BG',{day:'numeric',month:'long'})}`);
+  requestMission();
+}
+
+newMissionBtn.addEventListener('click', () => {
+  if (isLoading) return;
+  conversationHistory = [];
+  addDayLabel('— Нова мисия —');
+  requestMission();
+});
+
+function requestMission() {
+  const prompt = `ГЕНЕРИРАЙ_МИСИЯ: Тема на деня: "${todayTheme.hint}". Вплети темата в поне една МАТ задача (например текстова задача с тоя контекст).`;
+  callClaude(prompt, true, true);
+}
+
+// ── File upload ──
+uploadBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    pendingImageBase64 = dataUrl.split(',')[1];
+    pendingImageType = file.type;
+    previewImg.src = dataUrl;
+    previewName.textContent = file.name;
+    uploadPreview.classList.add('visible');
+  };
+  reader.readAsDataURL(file);
+  fileInput.value = '';
+});
+removeUpload.addEventListener('click', clearUpload);
+function clearUpload() {
+  pendingImageBase64 = null; pendingImageType = null;
+  uploadPreview.classList.remove('visible'); previewImg.src = '';
+}
+
+// ── Messaging ──
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} });
+inputEl.addEventListener('input', () => { inputEl.style.height='auto'; inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'; });
+
+function sendMessage() {
+  const text = inputEl.value.trim();
+  if((!text && !pendingImageBase64) || isLoading) return;
+  const contentParts = [];
+  if(pendingImageBase64) contentParts.push({type:'image',source:{type:'base64',media_type:pendingImageType||'image/jpeg',data:pendingImageBase64}});
+  if(text) contentParts.push({type:'text',text});
+  appendMessage('user', text, pendingImageBase64 ? `data:${pendingImageType};base64,${pendingImageBase64}` : null);
+  inputEl.value = ''; inputEl.style.height='auto';
+  clearUpload(); clearQuickReplies();
+  conversationHistory.push({role:'user', content: contentParts.length===1&&!pendingImageBase64 ? text : contentParts});
+  callClaude(null, false, false);
+}
+
+async function callClaude(content, isSystem, expectJSON) {
+  isLoading = true; sendBtn.disabled = true;
+  if(isSystem) conversationHistory.push({role:'user', content});
+  const typingEl = appendTyping();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:4096, system:SYSTEM_PROMPT, messages:conversationHistory})
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const reply = data.content.map(b=>b.text||'').join('');
+    conversationHistory.push({role:'assistant', content:reply});
+    typingEl.remove();
+
+    if (expectJSON) {
+      const mission = parseMissionJSON(reply);
+      if (mission) {
+        if (mission.intro) appendMessage('coach', mission.intro);
+        appendMissionCard(mission);
+        if (mission.closing) appendMessage('coach', mission.closing);
+      } else {
+        appendMessage('coach', reply); // fallback if JSON parse fails
+      }
+    } else {
+      appendMessage('coach', cleanMarkdown(reply));
+    }
+    setQuickReplies();
+  } catch(err) {
+    typingEl.remove();
+    appendMessage('coach', `⚠️ Грешка: ${err.message}`);
+  }
+  isLoading = false; sendBtn.disabled = false;
+}
+
+function parseMissionJSON(raw) {
+  let s = raw.trim();
+  // strip ```json ... ``` fences if present
+  s = s.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
+  // extract from first { to last }
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start === -1 || end === -1) return null;
+  s = s.slice(start, end + 1);
+  try { return JSON.parse(s); }
+  catch(e) { console.error('JSON parse failed:', e, s.slice(0,300)); return null; }
+}
+
+function cleanMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/^#{1,3}\s+/gm, '')
+    .replace(/^---+$/gm, '')
+    .trim();
+}
+
+// ── Mission card with tabs ──
+function appendMissionCard(mission) {
+  const card = document.createElement('div');
+  card.className = 'mission-card';
+
+  card.innerHTML = `
+    <div class="tabs">
+      <button class="tab mat active" data-tab="mat">
+        <span class="tab-icon">📐<span class="seen-check">✅</span></span>
+        <span class="tab-label">МАТ</span>
+        <span class="tab-count">${(mission.mat||[]).length} задачи</span>
+      </button>
+      <button class="tab bel" data-tab="bel">
+        <span class="tab-icon">✍️<span class="seen-check">✅</span></span>
+        <span class="tab-label">БЕЛ</span>
+        <span class="tab-count">${(mission.bel||[]).length} задачи</span>
+      </button>
+      <button class="tab lit" data-tab="lit">
+        <span class="tab-icon">📖<span class="seen-check">✅</span></span>
+        <span class="tab-label">ЛИТ</span>
+        <span class="tab-count">${(mission.lit&&mission.lit.questions||[]).length} въпроса</span>
+      </button>
+    </div>
+    <div class="tab-panel mat" data-panel="mat"><div class="section-tag">📐 Математика</div></div>
+    <div class="tab-panel bel" data-panel="bel"><div class="section-tag">✍️ Български</div></div>
+    <div class="tab-panel lit" data-panel="lit"><div class="section-tag">📖 Литература</div></div>
+    <div class="mission-footer">📷 Качи снимка с решението до 17:00 ч.</div>
+  `;
+
+
+  // Populate MAT panel
+  const matPanel = card.querySelector('.tab-panel[data-panel="mat"]');
+  (mission.mat||[]).forEach((task, i) => {
+    const row = document.createElement('div');
+    row.className = 'task-row mat';
+    row.innerHTML = `<div class="task-badge">${i+1}</div><div class="task-text"></div>`;
+    row.querySelector('.task-text').textContent = task;
+    matPanel.appendChild(row);
+  });
+
+  // Populate BEL panel
+  const belPanel = card.querySelector('.tab-panel[data-panel="bel"]');
+  (mission.bel||[]).forEach((task, i) => {
+    const row = document.createElement('div');
+    row.className = 'task-row bel';
+    row.innerHTML = `<div class="task-badge">${i+1}</div><div class="task-text"></div>`;
+    row.querySelector('.task-text').textContent = task;
+    belPanel.appendChild(row);
+  });
+
+  // Populate LIT panel
+  const litPanel = card.querySelector('.tab-panel[data-panel="lit"]');
+  if (mission.lit) {
+    const litCard = document.createElement('div');
+    litCard.className = 'lit-card';
+    litCard.innerHTML = `
+      <div class="lit-card-top">
+        <div class="lit-icon">📜</div>
+        <div>
+          <div class="lit-work"></div>
+          <div class="lit-author"></div>
+        </div>
+      </div>
+      <div class="lit-time">⏱ ${mission.lit.time_estimate || ''}</div>
+    `;
+    litCard.querySelector('.lit-work').textContent = mission.lit.work || '';
+    litCard.querySelector('.lit-author').textContent = mission.lit.author || '';
+    litPanel.appendChild(litCard);
+
+    const qWrap = document.createElement('div');
+    qWrap.className = 'lit-questions';
+    (mission.lit.questions||[]).forEach((q, i) => {
+      const row = document.createElement('div');
+      row.className = 'task-row lit';
+      row.innerHTML = `<div class="task-badge">${i+1}</div><div class="task-text"></div>`;
+      row.querySelector('.task-text').textContent = q;
+      qWrap.appendChild(row);
+    });
+    litPanel.appendChild(qWrap);
+  }
+
+  // Tab click → smooth scroll to that section (all sections always visible)
+  card.querySelectorAll('.tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      const panel = card.querySelector(`.tab-panel[data-panel="${tabBtn.dataset.tab}"]`);
+      panel.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
+
+  // Track which sections have been scrolled past → mark tab as seen
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const name = entry.target.dataset.panel;
+        const tab = card.querySelector(`.tab[data-tab="${name}"]`);
+        tab.classList.add('seen');
+        card.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t===tab));
+      }
+    });
+  }, { root: null, threshold: 0.4 });
+  card.querySelectorAll('.tab-panel').forEach(p => observer.observe(p));
+
+  messagesEl.appendChild(card);
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+
+  if (window.renderMathInElement) {
+    renderMathInElement(card, {
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });
+  }
+}
+
+// ── UI helpers ──
+function appendMessage(role, text, imgSrc) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  if(text) {
+    bubble.textContent = text;
+    if(window.renderMathInElement) {
+      renderMathInElement(bubble, {
+        delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
+        throwOnError:false
+      });
+    }
+  }
+  if(imgSrc) { const img=document.createElement('img'); img.src=imgSrc; bubble.appendChild(img); }
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  meta.textContent = new Date().toLocaleTimeString('bg-BG',{hour:'2-digit',minute:'2-digit'});
+  div.appendChild(bubble); div.appendChild(meta);
+  messagesEl.appendChild(div);
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+  return div;
+}
+
+function appendTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg coach';
+  div.innerHTML = `<div class="typing-bubble"><span></span><span></span><span></span></div>`;
+  messagesEl.appendChild(div);
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+  return div;
+}
+
+function addDayLabel(text) {
+  const div = document.createElement('div');
+  div.className = 'day-label';
+  div.textContent = text;
+  messagesEl.appendChild(div);
+}
+
+function setQuickReplies() {
+  quickRepliesEl.innerHTML = '';
+  ['Имам въпрос 🙋','Заседнах тук','Дай ми подсказка','Готово — качвам снимка 📷','Не разбрах'].forEach(label => {
+    const btn = document.createElement('button');
+    btn.className = 'qr'; btn.textContent = label;
+    btn.addEventListener('click', () => { inputEl.value=label; inputEl.dispatchEvent(new Event('input')); inputEl.focus(); });
+    quickRepliesEl.appendChild(btn);
+  });
+}
+
+function clearQuickReplies() { quickRepliesEl.innerHTML = ''; }
+</script>
+</body>
+</html>
