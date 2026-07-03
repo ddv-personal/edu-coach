@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Компас</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0d1117;
+  --surface:   #13181f;
+  --card:      #181e27;
+  --border:    #1f2837;
+  --mat:       #4facfe;
+  --mat-soft:  rgba(79,172,254,0.10);
+  --mat-glow:  rgba(79,172,254,0.30);
+  --bel:       #f7b731;
+  --bel-soft:  rgba(247,183,49,0.10);
+  --bel-glow:  rgba(247,183,49,0.28);
+  --lit:       #a78bfa;
+  --lit-soft:  rgba(167,139,250,0.10);
+  --lit-glow:  rgba(167,139,250,0.30);
+  --user-bg:   #1a2235;
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --radius:    16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:16px;min-height:100%;position:relative}
+
+/* Setup screen CSS removed */
+
+/* ── HEADER ── */
+header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);z-index:20}
+.h-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--mat),var(--lit));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 14px rgba(167,139,250,.3)}
+.h-info{flex:1;min-width:0}
+.h-name{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.01em}
+
+.h-btn{flex-shrink:0;background:none;border:1.5px solid transparent;border-radius:20px;font-size:12px;padding:6px 12px;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif}
+.h-btn:hover{border-color:var(--lit);color:var(--lit)}
+.h-btn-icon{padding:6px 10px}
+.h-theme{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--lit);background:var(--lit-soft);border-radius:10px;padding:1px 8px;margin-top:2px}
+
+/* ── MESSAGES ── */
+#messages{padding:78px 14px 190px;display:flex;flex-direction:column;gap:12px;min-height:100vh}
+.day-label{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:4px 0}
+
+/* ── MISSION CARD WITH TABS ── */
+.mission-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);animation:springUp .45s cubic-bezier(0.34,1.56,0.64,1) both}
+.tabs{display:flex;border-bottom:1px solid var(--border);position:sticky;top:63px;background:var(--card);z-index:5;border-radius:var(--radius) var(--radius) 0 0;overflow:hidden}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:11px 6px 9px;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;position:relative;transition:background .15s}
+.tab .tab-icon{font-size:0;position:relative;line-height:1}.tab .tab-icon i{font-size:21px;color:var(--muted)}.tab[data-tab="mat"].active .tab-icon i{color:var(--mat)}.tab[data-tab="bel"].active .tab-icon i{color:var(--bel)}.tab[data-tab="lit"].active .tab-icon i{color:var(--lit)}.tab[data-tab="mat"]:not(.active) .tab-icon i{color:var(--mat);opacity:0.45}.tab[data-tab="bel"]:not(.active) .tab-icon i{color:var(--bel);opacity:0.45}.tab[data-tab="lit"]:not(.active) .tab-icon i{color:var(--lit);opacity:0.45}
+.tab .tab-label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.tab .tab-count{font-size:14px;font-weight:700;color:var(--muted);font-family:'Space Grotesk',sans-serif;line-height:1;opacity:1}.tab[data-tab="mat"].active .tab-count{color:var(--mat)}.tab[data-tab="bel"].active .tab-count{color:var(--bel)}.tab[data-tab="lit"].active .tab-count{color:var(--lit)}
+.tab.active .tab-label{color:var(--text)}
+.tab .seen-check{display:none;position:absolute;top:-3px;right:-9px;font-size:10px}
+.tab.seen .seen-check{display:inline}
+.tab::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:2px;border-radius:2px;background:transparent;transition:background .2s}
+.tab[data-tab="mat"].active::after{background:var(--mat)}
+.tab[data-tab="bel"].active::after{background:var(--bel)}
+.tab[data-tab="lit"].active::after{background:var(--lit)}
+.tab[data-tab="mat"].active{background:var(--mat-soft)}
+.tab[data-tab="bel"].active{background:var(--bel-soft)}
+.tab[data-tab="lit"].active{background:var(--lit-soft)}
+.tab:hover:not(.active){background:rgba(255,255,255,0.02)}
+
+.tab-panel{padding:16px;scroll-margin-top:115px}
+.tab-panel + .tab-panel{border-top:1px solid var(--border)}
+.section-tag{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.tab-panel.mat .section-tag{color:var(--mat)}.tab-panel.mat .section-tag i{font-size:18px;color:var(--mat)}
+.tab-panel.bel .section-tag{color:var(--bel)}.tab-panel.bel .section-tag i{font-size:18px;color:var(--bel)}
+.tab-panel.lit .section-tag{color:var(--lit)}.tab-panel.lit .section-tag i{font-size:18px;color:var(--lit)}
+
+.task-row{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.task-row:last-child{border-bottom:none}
+.task-badge{flex-shrink:0;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-top:1px}
+.task-row.mat .task-badge{background:var(--mat-soft);color:var(--mat);border:1px solid rgba(79,172,254,0.35)}
+.task-row.bel .task-badge{background:var(--bel-soft);color:var(--bel);border:1px solid rgba(247,183,49,0.35)}
+.task-text{flex:1;font-size:16px;line-height:1.65;color:var(--text);padding-top:1px}
+
+/* lit panel special layout */
+.lit-card{background:var(--lit-soft);border:1px solid rgba(167,139,250,0.25);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.lit-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.lit-icon{font-size:22px;flex-shrink:0}
+.lit-work{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:var(--lit)}
+.lit-author{font-size:12px;color:var(--muted);margin-top:1px}
+.lit-time{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--lit);background:rgba(167,139,250,0.15);border-radius:10px;padding:2px 9px;margin-top:8px}
+.lit-poem{font-style:italic;font-size:13.5px;line-height:1.7;color:#cbd5e1;border-left:2px solid rgba(167,139,250,0.4);padding-left:12px;margin-top:10px;white-space:pre-wrap}
+.lit-questions{display:flex;flex-direction:column;gap:0}
+.task-row.lit .task-badge{background:var(--lit-soft);color:var(--lit);border:1px solid rgba(167,139,250,0.35)}
+
+.mission-footer{padding:12px 16px 0;border-top:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);display:flex;flex-direction:column;gap:10px}
+.mission-footer-photo{font-size:11.5px;color:var(--muted);padding-bottom:12px}
+.chess-reward{border-radius:12px;overflow:hidden;transition:all .3s}
+.chess-reward.locked{background:rgba(255,255,255,0.03);border:1px dashed var(--border)}
+.chess-reward.unlocked{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.35);box-shadow:0 0 16px rgba(251,191,36,0.1)}
+.chess-reward-inner{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.chess-reward-icon{font-size:20px;flex-shrink:0;transition:filter .3s}
+.chess-reward.locked .chess-reward-icon{filter:grayscale(1);opacity:0.4}
+.chess-reward-text{flex:1;min-width:0}
+.chess-reward-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.chess-reward.locked .chess-reward-title{color:var(--muted)}
+.chess-reward-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.chess-reward.unlocked .chess-reward-sub{color:rgba(251,191,36,0.8)}
+.chess-play-btn{flex-shrink:0;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:10px;color:#1a1000;font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .18s;white-space:nowrap}
+.chess-play-btn:hover{transform:scale(1.05);box-shadow:0 0 14px rgba(251,191,36,0.5)}
+@keyframes unlock-pulse{0%{box-shadow:0 0 0 0 rgba(251,191,36,0.5)}70%{box-shadow:0 0 0 10px rgba(251,191,36,0)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
+.chess-reward.just-unlocked{animation:unlock-pulse 0.6s ease 2}
+.chess-progress-pills{display:flex;gap:4px;flex-shrink:0}
+.chess-pip{width:10px;height:10px;border-radius:50%;background:var(--border);transition:background .3s}
+.chess-pip.done{background:#fbbf24}
+/* ── FLOATING CHESS BUTTON (появява се след unlock) ── */
+#chess-float-btn{position:fixed;bottom:90px;right:16px;z-index:25;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:50%;width:48px;height:48px;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(251,191,36,0.45);transition:all .2s;display:none;align-items:center;justify-content:center}
+#chess-float-btn.visible{display:flex}
+#chess-float-btn:hover{transform:scale(1.1);box-shadow:0 6px 22px rgba(251,191,36,0.6)}
+@keyframes float-in{from{opacity:0;transform:scale(0.5) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+#chess-float-btn.visible{animation:float-in .3s cubic-bezier(.34,1.56,.64,1) both}
+
+/* ── CHAT BUBBLES ── */
+.msg{display:flex;flex-direction:column;max-width:82%;gap:3px;animation:springUp .3s cubic-bezier(0.34,1.56,0.64,1) both}
+.msg.coach{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.bubble{padding:11px 15px;border-radius:var(--radius);line-height:1.65;white-space:pre-wrap;word-break:break-word;font-size:16px}
+.coach .bubble{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:6px}.bubble.featured{border-left:3px solid var(--lit);background:rgba(167,139,250,0.06);}
+.user .bubble{background:var(--user-bg);border:1px solid #243051;border-bottom-right-radius:6px;color:#c8d8ff}
+.msg-meta{font-size:10px;color:var(--muted);padding:0 4px}
+.coach .msg-meta{text-align:left}
+.user .msg-meta{text-align:right}
+.bubble img{max-width:220px;border-radius:10px;margin-top:8px;display:block}
+
+.typing-bubble{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);border-bottom-left-radius:6px;padding:14px 18px;display:flex;gap:5px;align-items:center}
+.typing-bubble span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite}
+.typing-bubble span:nth-child(2){animation-delay:.2s}
+.typing-bubble span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes springUp{0%{opacity:0;transform:translateY(14px) scale(0.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes slideInTask{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes compassSpin{from{transform:rotate(-25deg) scale(0.85)}to{transform:rotate(0deg) scale(1)}}
+
+/* ── QUICK REPLIES ── */
+#footer-area{position:fixed;bottom:0;left:0;right:0;z-index:20;background:var(--surface)}
+#quick-replies{display:flex;gap:7px;padding:8px 14px 8px;overflow-x:auto}
+#quick-replies:empty{padding:0}
+#quick-replies::-webkit-scrollbar{display:none}
+.qr{flex-shrink:0;font-size:12.5px;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;font-family:'Inter',sans-serif}
+.qr:hover{border-color:var(--lit);color:var(--lit);background:var(--lit-soft)}
+
+/* ── UPLOAD PREVIEW ── */
+#upload-preview{display:none;align-items:center;gap:10px;padding:8px 14px;background:var(--surface);border-top:1px solid var(--border)}
+#upload-preview.visible{display:flex}
+#preview-img{height:44px;border-radius:8px;object-fit:cover}
+#preview-name{font-size:12px;color:var(--muted);flex:1}
+#remove-upload{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1}
+
+/* ── INPUT ── */
+#input-area{display:flex;align-items:flex-end;gap:9px;padding:10px 14px 14px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+#user-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:'Inter',sans-serif;font-size:16px;padding:10px 16px;resize:none;outline:none;max-height:130px;overflow-y:auto;line-height:1.4;transition:border-color .2s}
+#user-input::placeholder{color:var(--muted)}
+#user-input:focus{border-color:var(--lit)}
+#upload-btn{width:36px;height:36px;border-radius:50%;background:none;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);transition:all .2s}
+#upload-btn:hover{border-color:var(--mat);color:var(--mat)}
+#file-input{display:none}
+#send-btn{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--mat),var(--lit));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 0 12px var(--lit-glow)}
+#send-btn:hover{transform:scale(1.08);box-shadow:0 0 20px var(--lit-glow)}
+#send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+/* ── PROGRESS / ARCHIVE OVERLAY ── */
+#progress-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:150;display:none;align-items:flex-end;justify-content:center}
+#progress-overlay.visible{display:flex}
+.po-panel{width:100%;max-width:480px;max-height:88vh;background:var(--bg);border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:slideUp .35s cubic-bezier(0.34,1.56,0.64,1) both;border:1px solid var(--border);border-bottom:none}
+@media(min-width:600px){
+  #progress-overlay{align-items:center;justify-content:center}
+  .po-panel{border-radius:20px;border-bottom:1px solid var(--border);max-height:80vh}
+}
+@keyframes slideUp{from{transform:translateY(40px) scale(0.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.po-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;flex-shrink:0}
+.po-title{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700}
+.po-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px}
+.po-tabs{display:flex;gap:6px;padding:0 14px 12px;flex-shrink:0}
+.po-tab{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:12px;font-weight:600;padding:9px 6px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.po-tab.active{background:var(--lit-soft);border-color:rgba(167,139,250,0.4);color:var(--lit)}
+.po-body{flex:1;overflow-y:auto;padding:4px 18px 24px}
+.po-body::-webkit-scrollbar{width:3px}
+.po-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.po-note{font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:14px;line-height:1.5}
+
+/* history list */
+.hist-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.hist-card:hover{border-color:rgba(167,139,250,0.35)}
+.hist-top{display:flex;align-items:center;justify-content:space-between}
+.hist-date{font-size:12px;color:var(--muted)}
+.hist-theme{font-size:11px;color:var(--lit);display:flex;align-items:center;gap:4px}
+.hist-summary{font-size:13px;color:var(--text);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap}
+.hist-pill{font-size:11px;padding:2px 8px;border-radius:8px}
+.hist-pill.mat{background:var(--mat-soft);color:var(--mat)}
+.hist-pill.bel{background:var(--bel-soft);color:var(--bel)}
+.hist-pill.lit{background:var(--lit-soft);color:var(--lit)}
+
+/* reading checklist */
+.read-progress{font-size:12px;color:var(--muted);margin-bottom:12px}
+.read-group-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
+.read-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.read-check{flex-shrink:0;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
+.read-item.done .read-check{background:var(--lit);border-color:var(--lit);color:#fff}
+.read-text{font-size:13px;line-height:1.4}
+.read-item.done .read-text{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(100,116,139,0.4)}
+.read-author{color:var(--muted);font-size:11.5px}
+
+/* skills grid */
+.skill-group-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 8px}
+.skill-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.skill-code{flex-shrink:0;width:30px;font-size:11px;font-weight:700;color:var(--muted);font-family:'Space Grotesk',sans-serif}
+.skill-label{flex:1;font-size:12.5px;color:var(--text)}
+.skill-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%}
+.skill-dot.good{background:var(--lit);box-shadow:0 0 6px var(--lit-glow)}
+.skill-dot.some{background:var(--bel)}
+.skill-dot.none{background:var(--border)}
+
+/* ── MISSED DAY PROMPT ── */
+.missed-day-choice{display:flex;gap:8px;max-width:100%}
+.md-btn{flex:1;border-radius:14px;padding:11px 14px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all .18s;border:1px solid transparent}
+.md-btn.primary{background:linear-gradient(135deg,var(--mat),var(--lit));color:#fff;box-shadow:0 0 12px var(--lit-glow)}
+.md-btn.primary:hover{opacity:.9;transform:translateY(-1px)}
+.md-btn.secondary{background:var(--card);border-color:var(--border);color:var(--muted)}
+.md-btn.secondary:hover{border-color:var(--lit);color:var(--lit)}
+/* ── CHESS OVERLAY ── */
+#chess-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:160;display:none;align-items:center;justify-content:center;padding:16px}
+#chess-overlay.visible{display:flex}
+.chess-panel{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;max-height:95vh;overflow-y:auto;display:flex;flex-direction:column}
+.chess-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chess-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700}
+.chess-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:2px}
+.chess-status{padding:10px 16px;font-size:13px;color:var(--text);background:var(--surface);border-bottom:1px solid var(--border);min-height:44px;flex-shrink:0;line-height:1.5}
+.chess-status.thinking{color:var(--muted);font-style:italic}
+.chess-board-wrap{padding:12px;flex-shrink:0}
+.chess-board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid var(--border)}
+.sq{display:flex;align-items:center;justify-content:center;font-size:clamp(22px,6vw,38px);cursor:pointer;position:relative;transition:background .1s;user-select:none}
+.sq.light{background:#d4b896}
+.sq.dark{background:#8b5e3c}
+.sq.selected{background:#f0d060 !important}
+.sq.valid-move::after{content:'';position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(0,0,0,0.25)}
+.sq.valid-capture::after{content:'';position:absolute;inset:0;border:3px solid rgba(0,0,0,0.3);border-radius:2px}
+.sq:hover:not(.selected){opacity:0.85}
+.chess-coords{display:flex;justify-content:space-around;padding:0 12px 4px;font-size:10px;color:var(--muted);font-family:monospace}
+.chess-info{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);flex-shrink:0}
+.chess-turn{font-size:12px;color:var(--muted)}
+.chess-new-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;padding:6px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.chess-new-btn:hover{border-color:var(--lit);color:var(--lit)}
+.chess-result{text-align:center;padding:14px 16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;flex-shrink:0}
+.chess-result.win{color:#4ade80}
+.chess-result.lose{color:#fb7185}
+.chess-result.draw{color:var(--muted)}
+/* ── SPRING INTERACTIONS & TACTILE FEEDBACK ── */
+/* Compass spin on load */
+.h-avatar{animation:compassSpin .7s cubic-bezier(0.34,1.56,0.64,1) both}
+
+/* Press states — tactile feedback on all interactive elements */
+.tab:active{transform:scale(0.91);transition:transform .07s ease}
+#send-btn:active{transform:scale(0.87) !important;transition:transform .07s ease}
+.chess-play-btn:active{transform:scale(0.91) !important;transition:transform .07s ease}
+.md-btn:active{transform:scale(0.95) !important;transition:transform .07s ease}
+.h-btn:active{transform:scale(0.93);transition:transform .07s ease}
+.qr:active{transform:scale(0.93);transition:transform .07s ease}
+#upload-btn:active{transform:scale(0.89);transition:transform .07s ease}
+#chess-float-btn:active{transform:scale(0.88) !important;transition:transform .07s ease}
+.hist-card:active{transform:scale(0.98);transition:transform .1s ease}
+
+/* Staggered task rows */
+.task-row{animation:slideInTask .3s cubic-bezier(0.34,1.56,0.64,1) both;animation-delay:calc(var(--task-i,0) * 55ms)}
+
+/* Typography improvements */
+.section-tag{font-size:11.5px;font-weight:800;letter-spacing:.07em}
+.h-name{font-size:16px}
+.tab .tab-label{font-weight:800}
+.task-text{font-size:14px;line-height:1.65}
+.lit-work{font-size:16px}
+
+/* Day label as pill */
+.day-label{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 14px;align-self:center;display:inline-block;margin:0 auto}
+#messages .day-label{text-align:center;display:block;width:fit-content;margin:8px auto}
+
+/* Better typing indicator */
+.typing-bubble::before{content:'Компас';font-size:11px;color:var(--muted);margin-right:6px;font-family:'Space Grotesk',sans-serif;font-weight:600}
+
+/* Tab transition smoother */
+.tab::after{transition:background .25s cubic-bezier(0.34,1.56,0.64,1)}
+.tab{transition:background .18s ease}
+
+/* Send button - more satisfying */
+#send-btn:not(:disabled):hover{transform:scale(1.1) !important;transition:transform .2s cubic-bezier(0.34,1.56,0.64,1)}
+
+/* Mission card — subtle top accent gradient */
+.mission-card::before{content:'';display:block;height:2px;background:linear-gradient(90deg,var(--mat),var(--bel),var(--lit));border-radius:var(--radius) var(--radius) 0 0}
+
+/* ── HEADER BUTTONS ── */
+/* Stats button — circular, lit purple */
+#progress-btn{
+  width:36px;height:36px;padding:0;border-radius:50%;
+  background:rgba(167,139,250,0.12);
+  border:1.5px solid rgba(167,139,250,0.4);
+  color:var(--lit);display:flex;align-items:center;justify-content:center;
+}
+#progress-btn i{font-size:18px}
+#progress-btn:hover{background:rgba(167,139,250,0.22);box-shadow:0 0 14px rgba(167,139,250,0.3);transform:scale(1.06)}
+#progress-btn:active{transform:scale(0.92) !important}
+
+/* New mission button — gradient border (mission stripe colors) */
+#new-mission-btn{
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(135deg,var(--mat),var(--bel),var(--lit)) border-box;
+  border:1.5px solid transparent;
+  color:#e2e8f0;
+  font-size:12.5px;font-weight:500;
+  display:flex;align-items:center;gap:5px;
+}
+#new-mission-btn i{font-size:15px}
+#new-mission-btn:hover{
+  background:linear-gradient(rgba(255,255,255,0.06),rgba(255,255,255,0.06)) padding-box,
+             linear-gradient(135deg,var(--mat),var(--bel),var(--lit)) border-box;
+  color:#fff;
+}
+#new-mission-btn:active{transform:scale(0.95) !important}
+
+/* ── MOBILE OPTIMIZATIONS ── */
+@media (max-width: 480px) {
+  /* Header — по-компактен, бутоните не излизат */
+  header{padding:10px 12px;gap:8px}
+  .h-name{font-size:14px}
+  .h-btn{font-size:11px;padding:5px 9px}
+  .h-btn-icon{padding:5px 8px}
+
+  /* Messages — по-малко padding отстрани */
+  #messages{padding:68px 10px 170px}
+
+  /* Mission card tabs — по-компактни */
+  .tab{padding:9px 4px 7px}
+  .tab .tab-icon{font-size:15px}
+  .tab .tab-label{font-size:9.5px}
+  .tab .tab-count{font-size:8px}
+  .tabs{top:58px}
+
+  /* Task rows — по-малко padding */
+  .task-row{padding:8px 0}
+  .task-badge{width:22px;height:22px;font-size:10px}
+  .task-text{font-size:13px}
+  .tab-panel{padding:12px}
+
+  /* Bubbles */
+  .bubble{font-size:13.5px;padding:10px 13px}
+  .msg{max-width:92%}
+
+  /* Input area — по-компактен */
+  #input-area{padding:8px 10px 10px;gap:7px}
+  #user-input{font-size:14px;padding:9px 13px}
+  #upload-btn{width:34px;height:34px}
+  #send-btn{width:38px;height:38px}
+
+  /* Chess reward — вертикален layout на малък екран */
+  .chess-reward-inner{padding:9px 12px;gap:8px}
+  .chess-reward-title{font-size:12px}
+  .chess-reward-sub{font-size:10px}
+
+  /* Floating chess btn — малко по-нагоре */
+  #chess-float-btn{bottom:75px;right:12px;width:44px;height:44px;font-size:20px}
+
+  /* Progress overlay */
+  .po-panel{border-radius:16px 16px 0 0}
+  .po-tabs .po-tab{font-size:11px;padding:7px 4px}
+
+  /* Missed day choice buttons — stack vertically */
+  .missed-day-choice{flex-direction:column}
+
+  /* Chess board — full width on mobile */
+  .chess-panel{max-width:100%;border-radius:16px 16px 0 0}
+  .chess-board-wrap{padding:8px}
+  .sq{font-size:clamp(20px,8vw,32px)}
+
+  /* Section tag */
+  .section-tag{font-size:10px;margin-bottom:6px}
+}
+
+/* Safe area for notched phones (iPhone X+) */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #footer-area{padding-bottom: env(safe-area-inset-bottom)}
+  #messages{padding-bottom: calc(170px + env(safe-area-inset-bottom))}
+}
+</style>
+</head>
+<body>
+
+<!-- Setup screen removed — API key lives in Make.com -->
+
+<!-- HEADER -->
+<header>
+  <div class="h-avatar">
+    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" aria-hidden="true">
+      <!-- Compass ring -->
+      <circle cx="18" cy="18" r="14.5" stroke="rgba(255,255,255,0.28)" stroke-width="1.2"/>
+      <!-- Cardinal ticks — N bigger -->
+      <line x1="18" y1="3.5" x2="18" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <line x1="18" y1="29.5" x2="18" y2="32.5" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="3.5" y1="18" x2="6.5" y2="18" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="29.5" y1="18" x2="32.5" y2="18" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- PENCIL north needle -->
+      <!-- Eraser cap -->
+      <rect x="16.6" y="7" width="2.8" height="2" rx="0.6" fill="rgba(255,255,255,0.55)"/>
+      <!-- Thin separator line -->
+      <line x1="16.6" y1="9" x2="19.4" y2="9" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
+      <!-- Pencil body -->
+      <rect x="16.9" y="9" width="2.2" height="6.5" fill="white"/>
+      <!-- Wood taper -->
+      <polygon points="16.9,15.5 19.1,15.5 18,18.8" fill="rgba(255,255,255,0.85)"/>
+      <!-- Graphite tip -->
+      <circle cx="18" cy="19.2" r="0.8" fill="rgba(255,255,255,0.45)"/>
+      <!-- South counter-needle -->
+      <path d="M18 30 L20 21 L18 19.8 L16 21 Z" fill="rgba(255,255,255,0.32)"/>
+      <!-- Center pivot -->
+      <circle cx="18" cy="18" r="2.1" fill="white"/>
+      <circle cx="18" cy="18" r="0.9" fill="rgba(167,139,250,0.75)"/>
+    </svg>
+  </div>
+  <div class="h-info">
+    <div class="h-name">Компас</div>
+    <div class="h-theme" id="theme-chip">… </div>
+  </div>
+  <button class="h-btn h-btn-icon" id="progress-btn" title="Прогрес и архив"><i class="ti ti-chart-bar" style="font-size:16px;" aria-hidden="true"></i></button>
+  <button class="h-btn" id="new-mission-btn"><i class="ti ti-refresh" style="font-size:15px;vertical-align:-2px;" aria-hidden="true"></i> Нова мисия</button>
+</header>
+
+
+
+<!-- MESSAGES -->
+<div id="messages"></div>
+
+<!-- FIXED FOOTER: quick replies + upload preview + input -->
+<div id="footer-area">
+  <div id="quick-replies"></div>
+
+  <div id="upload-preview">
+    <img id="preview-img" src="" alt="">
+    <span id="preview-name"></span>
+    <button id="remove-upload">✕</button>
+  </div>
+
+  <div id="input-area">
+    <button id="upload-btn" title="Качи снимка">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21,15 16,10 5,21"/>
+      </svg>
+    </button>
+    <input type="file" id="file-input" accept="image/*">
+    <textarea id="user-input" rows="1" placeholder="Напиши съобщение…"></textarea>
+    <button id="send-btn">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- PROGRESS / ARCHIVE OVERLAY -->
+<div id="progress-overlay">
+  <div class="po-panel">
+    <div class="po-header">
+      <div class="po-title">Прогрес</div>
+      <button class="po-close" id="po-close-btn">✕</button>
+    </div>
+    <div class="po-tabs">
+      <button class="po-tab active" data-po-tab="history">🗓️ История</button>
+      <button class="po-tab" data-po-tab="reading">📖 Четене</button>
+      <button class="po-tab" data-po-tab="skills">🎯 Умения</button>
+    </div>
+    <div class="po-body" id="po-body"></div>
+  </div>
+</div>
+
+<!-- FLOATING CHESS BUTTON -->
+<button id="chess-float-btn" title="Играй шах с Компас" onclick="openChess()">♟️</button>
+
+<!-- CHESS OVERLAY -->
+<div id="chess-overlay">
+  <div class="chess-panel">
+    <div class="chess-header">
+      <div class="chess-title">♟️ Шах с Компас</div>
+      <button class="chess-close" id="chess-close-btn">✕</button>
+    </div>
+    <div class="chess-status" id="chess-status">Ти си Бели. Направи първия ход!</div>
+    <div class="chess-board-wrap">
+      <div class="chess-board" id="chess-board"></div>
+      <div class="chess-coords" id="chess-coords">a b c d e f g h</div>
+    </div>
+    <div class="chess-result" id="chess-result" style="display:none"></div>
+    <div class="chess-info">
+      <span class="chess-turn" id="chess-turn">На ход: ⬜ Бели</span>
+      <button class="chess-new-btn" id="chess-new-btn">Нова партия</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+const WEBHOOK_URL = 'https://kompas-api.dobibanova.workers.dev'; // Make.com webhook — API key lives in Make.com
+let conversationHistory = [];
+let pendingImageBase64 = null;
+let pendingImageType = null;
+let isLoading = false;
+
+const DAILY_THEMES = [
+  { label: 'Кристална структура', emoji: '💎', hint: 'аметист и кристали' },
+  { label: 'Шахматна комбинация', emoji: '♟️', hint: 'шах' },
+  { label: 'Химичен опит', emoji: '🧪', hint: 'химия' },
+  { label: 'Геометрична разгъвка', emoji: '🔷', hint: '3D фигури' },
+  { label: 'Вулканичен минерал', emoji: '🌋', hint: 'минерали' },
+  { label: 'Октаедър', emoji: '🔮', hint: '3D фигури' },
+  { label: 'Кварцова решетка', emoji: '✨', hint: 'кристали' },
+];
+const todayTheme = DAILY_THEMES[new Date().getDay() % DAILY_THEMES.length];
+
+// ── DEMO DATA for Progress overlay (примерни данни — реалните ще идват от Google Sheets) ──
+// ── REQUIRED READING LIST (full, for reference when Sheets data incomplete) ──
+const READING_LIST = [
+  { group:'Стихотворения и разкази', items:[
+    {t:'„Хайдути"', a:'Христо Ботев'}, {t:'„На прощаване в 1868 г."', a:'Христо Ботев'},
+    {t:'„Хубава си, моя горо"', a:'Любен Каравелов'},
+    {t:'„Отечество любезно, как хубаво си ти!"', a:'Иван Вазов'},
+    {t:'„Опълченците на Шипка"', a:'Иван Вазов'}, {t:'„Българският език"', a:'Иван Вазов'},
+    {t:'„Една българка"', a:'Иван Вазов'},
+    {t:'„Стани, стани, юнак балкански"', a:'Добри Чинтулов'},
+    {t:'„Вятър ечи, Балкан стене"', a:'Добри Чинтулов'},
+    {t:'„Братчетата на Гаврош"', a:'Христо Смирненски'},
+    {t:'„Серафим"', a:'Йордан Йовков'}, {t:'„По жицата"', a:'Йордан Йовков'},
+    {t:'„Косачи"', a:'Елин Пелин'}, {t:'„По жътва"', a:'Елин Пелин'},
+    {t:'„Художник"', a:'Веселин Ханчев'}, {t:'„Неразделни"', a:'Пенчо Славейков'},
+    {t:'„Заточеници"', a:'Пейо Яворов'},
+  ]},
+  { group:'По-дълги творби', items:[
+    {t:'Из „Под игото" — „Представлението"', a:'Иван Вазов'},
+    {t:'Из „Под игото" — „Радини вълнения"', a:'Иван Вазов'},
+    {t:'Из „Немили-недраги"', a:'Иван Вазов'},
+    {t:'Из „Бай Ганьо" — „Бай Ганьо пътува"', a:'Алеко Константинов'},
+    {t:'Из „До Чикаго и назад"', a:'Алеко Константинов'},
+  ]},
+];
+
+// ── Progress overlay logic ──
+let progressData = null;
+let currentPoTab = 'history';
+
+const progressOverlay = document.getElementById('progress-overlay');
+const progressBtn = document.getElementById('progress-btn');
+const poCloseBtn = document.getElementById('po-close-btn');
+const poBody = document.getElementById('po-body');
+
+progressBtn.addEventListener('click', async () => {
+  progressOverlay.classList.add('visible');
+  poBody.innerHTML = `<div class="po-note" style="text-align:center;padding:24px 0;color:var(--muted)">Зареждане...</div>`;
+  try {
+    const res = await fetch(WEBHOOK_URL + '/progress');
+    progressData = res.ok ? await res.json() : null;
+  } catch(e) { progressData = null; }
+  renderPoTab(currentPoTab);
+});
+poCloseBtn.addEventListener('click', () => progressOverlay.classList.remove('visible'));
+progressOverlay.addEventListener('click', e => { if(e.target===progressOverlay) progressOverlay.classList.remove('visible'); });
+
+document.querySelectorAll('.po-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.po-tab').forEach(t => t.classList.toggle('active', t===tab));
+    currentPoTab = tab.dataset.poTab;
+    renderPoTab(currentPoTab);
+  });
+});
+
+function renderPoTab(name) {
+  if (name === 'history') renderHistoryTab();
+  else if (name === 'reading') renderReadingTab();
+  else renderSkillsTab();
+}
+
+function renderHistoryTab() {
+  poBody.innerHTML = '';
+  const rows = progressData?.missions || [];
+  if (!rows.length) {
+    poBody.innerHTML = `<div class="po-note">Все още няма записани мисии.</div>`;
+    return;
+  }
+  // rows: [date, theme, emoji, mission_json, status, photo_count]
+  [...rows].reverse().slice(0, 15).forEach(r => {
+    let mission = {};
+    try { mission = JSON.parse(r[3] || '{}'); } catch(e) {}
+    const card = document.createElement('div');
+    card.className = 'hist-card';
+    const litWork = mission?.lit?.work || '—';
+    card.innerHTML = `
+      <div class="hist-top">
+        <span class="hist-date">${r[0] || ''}</span>
+        <span class="hist-theme">${r[2] || ''} ${r[1] || ''}</span>
+      </div>
+      <div class="hist-summary">
+        <span class="hist-pill mat"><i class="ti ti-ruler" style="font-size:12px;vertical-align:-1px;"></i> МАТ</span>
+        <span class="hist-pill bel"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-1px;"></i> БЕЛ</span>
+        <span class="hist-pill lit"><i class="ti ti-book-2" style="font-size:12px;vertical-align:-1px;"></i> ${litWork}</span>
+      </div>`;
+    poBody.appendChild(card);
+  });
+}
+
+function renderReadingTab() {
+  poBody.innerHTML = '';
+  const rows = progressData?.reading || [];
+
+  // Build covered map from Sheets data: title → covered
+  const coveredMap = {};
+  rows.forEach(r => {
+    if (r[0]) coveredMap[r[0]] = (r[4] || '').toUpperCase() === 'TRUE';
+  });
+
+  // Count covered
+  const allItems = READING_LIST.flatMap(g => g.items);
+  const doneCount = allItems.filter(i => coveredMap[i.t]).length;
+
+  const prog = document.createElement('div');
+  prog.className = 'read-progress';
+  prog.innerHTML = `📚 Прочетени: <b>${doneCount}/${allItems.length}</b> творби`;
+  poBody.appendChild(prog);
+
+  READING_LIST.forEach(group => {
+    const label = document.createElement('div');
+    label.className = 'read-group-label';
+    label.textContent = group.group;
+    poBody.appendChild(label);
+    group.items.forEach(item => {
+      const done = !!coveredMap[item.t];
+      const row = document.createElement('div');
+      row.className = `read-item ${done ? 'done' : ''}`;
+      row.innerHTML = `<div class="read-check">${done ? '✓' : ''}</div><div class="read-text">${item.t} <span class="read-author">— ${item.a}</span></div>`;
+      poBody.appendChild(row);
+    });
+  });
+}
+
+const ALL_COMPETENCIES = [
+  { group: 'Математика', color: 'var(--mat)', items: [
+    {c:'М1', l:'Изчислителна грамотност'}, {c:'М2', l:'Алгебрично мислене'},
+    {c:'М3', l:'Уравнения и неравенства'}, {c:'М4', l:'Проценти и пропорции'},
+    {c:'М5', l:'Геометрия'}, {c:'М6', l:'Пространствено мислене'},
+    {c:'М7', l:'Текстови задачи'}, {c:'М8', l:'Данни и вероятности'},
+    {c:'М9', l:'Математическа обосновка'},
+  ]},
+  { group: 'Български език', color: 'var(--bel)', items: [
+    {c:'Б1', l:'Части на речта'}, {c:'Б2', l:'Глаголни форми'},
+    {c:'Б3', l:'Местоимения'}, {c:'Б4', l:'Части на изречението'},
+    {c:'Б5', l:'Просто и сложно изречение'}, {c:'Б6', l:'Правопис'},
+    {c:'Б7', l:'Членуване'}, {c:'Б8', l:'Пунктуация'},
+    {c:'Б9', l:'Речников запас'}, {c:'Б10', l:'Синоними и антоними'},
+    {c:'Б11', l:'Редактиране на текст'}, {c:'Б12', l:'Езикова култура'},
+  ]},
+  { group: 'Четивна грамотност', color: 'var(--lit)', items: [
+    {c:'Ч1', l:'Извличане на информация'}, {c:'Ч2', l:'Работа с няколко източници'},
+    {c:'Ч3', l:'Работа с таблици'}, {c:'Ч4', l:'Правене на изводи'},
+    {c:'Ч5', l:'Причинно-следствени връзки'}, {c:'Ч6', l:'Авторова позиция'},
+    {c:'Ч7', l:'Аргументиране с текста'}, {c:'Ч8', l:'Разбиране на герои'},
+    {c:'Ч9', l:'Разбиране на мотиви'}, {c:'Ч10', l:'Теми и послания'},
+  ]},
+  { group: 'Писмено изразяване', color: '#2dd4bf', items: [
+    {c:'П1', l:'Кратък аргументиран отговор'}, {c:'П2', l:'Формулиране на теза'},
+    {c:'П3', l:'Обосноваване на мнение'}, {c:'П4', l:'Яснота на изразяване'},
+    {c:'П5', l:'Логическа структура'}, {c:'П6', l:'Подбор на думи'},
+    {c:'П7', l:'Преразказ'}, {c:'П8', l:'Последователност'}, {c:'П9', l:'Самостоятелна редакция'},
+  ]},
+  { group: 'Exam Discipline', color: '#f87171', items: [
+    {c:'ЕД1', l:'Прочита цялото условие'}, {c:'ЕД2', l:'Показва разсъждения'},
+    {c:'ЕД3', l:'Проверява работата'}, {c:'ЕД4', l:'Прецизност'},
+    {c:'ЕД5', l:'Упоритост'}, {c:'ЕД6', l:'Коригира грешки'},
+    {c:'ЕД7', l:'Управление на времето'}, {c:'ЕД8', l:'Самостоятелно мислене'},
+    {c:'ЕД9', l:'Внимание към детайла'}, {c:'ЕД10', l:'Изпитна издръжливост'},
+  ]},
+];
+
+function renderSkillsTab() {
+  poBody.innerHTML = '';
+  const notes = progressData?.notes || [];
+
+  // Build a map: competency code → last note content
+  const noteMap = {};
+  notes.forEach(r => {
+    const content = r[3] || '';
+    const match = content.match(/^([А-ЯЕа-яеА-Яа-яЕД]{1,3}\d{1,2})/);
+    if (match) noteMap[match[1]] = { content, date: r[0] };
+  });
+
+  const totalPracticed = Object.keys(noteMap).length;
+  const totalAll = ALL_COMPETENCIES.reduce((s,g) => s + g.items.length, 0);
+
+  const summary = document.createElement('div');
+  summary.className = 'read-progress';
+  summary.innerHTML = `🎯 Практикувани: <b>${totalPracticed}/${totalAll}</b> умения`;
+  poBody.appendChild(summary);
+
+  ALL_COMPETENCIES.forEach(group => {
+    const label = document.createElement('div');
+    label.className = 'skill-group-label';
+    label.textContent = group.group;
+    poBody.appendChild(label);
+
+    group.items.forEach(s => {
+      const note = noteMap[s.c];
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+      row.style.alignItems = 'flex-start';
+      row.style.paddingTop = '8px';
+      const dot = note
+        ? `<span class="skill-dot good" style="background:${group.color};box-shadow:0 0 6px ${group.color}44;margin-top:4px"></span>`
+        : `<span class="skill-dot none" style="margin-top:4px"></span>`;
+      const noteText = note
+        ? `<span style="font-size:10.5px;color:var(--muted);display:block;margin-top:2px">${note.content.replace(/^[^ ]+ /,'').slice(0,60)}${note.content.length > 65 ? '…' : ''}</span>`
+        : '';
+      row.innerHTML = `
+        <span class="skill-code" style="color:${group.color};padding-top:2px">${s.c}</span>
+        <div style="flex:1;min-width:0"><span class="skill-label">${s.l}</span>${noteText}</div>
+        ${dot}`;
+      poBody.appendChild(row);
+    });
+  });
+}
+
+
+const SYSTEM_PROMPT = `Ти си Компас — личен AI коуч по математика и БЕЛ за 12-годишен момче, което се подготвя за НВО в края на 7-ми клас в България. Работиш само на БЪЛГАРСКИ.
+
+ПРОФИЛ НА УЧЕНИКА:
+- На 12 г., завършва 6-ти клас
+- Математика: силен — давай задачи на ниво финална секция на НВО (най-трудно)
+- БЕЛ: силен старт — оценявай постепенно и адаптирай
+- Интереси: камъни и минерали, химия и опити, шах, 3D фигури
+- Обича да учи самостоятелно — не го натискай, дай му усещане за собствен избор
+
+ТОН:
+- Топъл, насърчаващ, но НЕ детски и НЕ покровителствен
+- Като по-готин по-голям братовчед, добър по математика
+- Леко чувство за хумор е добре дошло
+
+ПРОВЕРКА ПРЕДИ ОБРАТНА ВРЪЗКА (КРИТИЧНО — НИКОГА НЕ ПРОПУСКАЙ ТОВА):
+- Преди да кажеш на ученика, че има грешка, ВИНАГИ първо сам пресметни верния отговор — НЕ наум, а ЯВНО, разпиши всяка стъпка на изчислението, особено събиране, изваждане, умножение. Никога не разчитай на бърза мисловна сметка — тя е точно толкова податлива на грешки, колкото на ученика.
+- При проверка на изваждане или събиране с по-големи числа — разбий на по-лесни стъпки (напр. 95 − 36 = 95 − 30 − 6 = 65 − 6 = 59), за да намалиш риска от грешка.
+- Никога не задавай риторичен въпрос от типа "Провери: X колко е всъщност?" без САМ да си показал явно изчислението, довело до верния отговор. Ако не можеш да покажеш изчислението стъпка по стъпка, не твърди, че има грешка.
+- Ако проверяваш снимка на ръкописно решение — прочети ВСЯКА цифра поотделно и внимателно, особено ако почеркът е неясен. При съмнение за конкретна цифра или знак, попитай ученика да поясни вместо да приемеш грешно тълкуване.
+- Грешно обявяване на правилен отговор за грешен е по-лошо от пропусната истинска грешка — то руши увереността на ученика в собствените му способности. При всяка несигурност — питай, не предполагай.
+- Ако след собствена явна проверка установиш, че отговорът на ученика е верен, кажи го ясно и директно, без излишни уговорки.
+
+ПРАВИЛА ЗА ОБРАТНА ВРЪЗКА:
+- Винаги ПЪРВО нещо конкретно похвали
+- После посочи грешките с обяснение ЗАЩО са грешки
+- Никога не давай пълния отговор докато ученикът не е опитал поне веднъж
+- Ако е заседнал — давай подсказки, не решения
+
+АДАПТАЦИЯ:
+- 3 последователни верни → увеличи трудността или нов материал
+- 1+ грешки → върни се с по-лесна версия, после средна, после НВО ниво
+
+МАТЕМАТИКА — само материал, който детето вече е учило:
+УЧЕНО ДО КРАЯ НА 6-ТИ КЛАС (използвай свободно): числа (естествени, цели, рационални, степени, корени), изрази с променливи, уравнения от 1-ва степен, пропорции/проценти/лихви, триъгълник/четириъгълник/трапец (лице, периметър), Питагорова теорема, окръжност, координатна система, статистика.
+НОВО В 7-МИ КЛАС (само ако детето покаже, че го знае): неравенства, многочлени и разлагане на множители, системи уравнения, квадратна функция, подобни триъгълници, вписан/описан многоъгълник, призма/пирамида/конус/цилиндър, вероятности.
+СТРОГО ЗАБРАНЕНО: тригонометрия (sin, cos, tan), логаритми, производни, интеграли, комплексни числа.
+
+ЗАДЪЛЖИТЕЛНА ЛИТЕРАТУРА ЗА НВО:
+Стихотворения/разкази: „Хайдути" и „На прощаване в 1868 г." (Христо Ботев); „Хубава си, моя горо" (Любен Каравелов); „Отечество любезно...", „Опълченците на Шипка", „Българският език", „Една българка" (Иван Вазов); „Стани, стани, юнак балкански", „Вятър ечи, Балкан стене" (Добри Чинтулов); „Братчетата на Гаврош" (Христо Смирненски); „Серафим", „По жицата" (Йордан Йовков); „Косачи", „По жътва" (Елин Пелин); „Художник" (Веселин Ханчев); „Неразделни" (Пенчо Славейков); „Заточеници" (Пейо Яворов).
+По-дълги творби: Из „Под игото" — глави „Представлението" и „Радини вълнения" (Вазов); Из „Немили-недраги" — глави I, II, III, V, X, епилог (Вазов); Из „Бай Ганьо" — глава „Бай Ганьо пътува" (Алеко Константинов); Из „До Чикаго и назад" (Алеко Константинов).
+
+ЛОГИКА ЗА ЛИТЕРАТУРА: избери творба от списъка, обяви я директно (без да питаш дали е чел), дай времева оценка за четене, после въпросите веднага. НЕ цитирай и не възпроизвеждай текста на творбата (стихотворение или откъс) — ученикът вече има пълния списък с заглавия и автори и може сам да го открие и прочете. Само споменавай заглавие, автор и приблизително време за четене. Ротация — не повтаряй вече покрита творба.
+
+КОМПЕТЕНТНОСТИ ЗА РОТАЦИЯ:
+МАТ (М1-М9): изчисления, алгебра, уравнения/неравенства, проценти/пропорции, геометрия, пространствено мислене, текстови задачи, данни/вероятности, обосновка.
+БЕЛ (Б1-Б12): части на речта, глаголни форми, местоимения, части на изречението, просто/сложно изречение, правопис, членуване, пунктуация, речников запас, синоними/антоними, редактиране, езикова култура.
+Включвай елементи от Любопитство (Л8 пространствена визуализация — 3D фигури; Л9 стратегическо мислене — шах; Л10 минерали/природни науки) когато е възможно, особено във връзка с темата на деня.
+
+ФОРМАТ НА ОТГОВОРА:
+Когато получиш съобщение, което започва с "ГЕНЕРИРАЙ_МИСИЯ:", отговори САМО с валиден JSON по точно тази схема, без markdown fences, без текст преди или след JSON-а:
+{
+  "intro": "кратко поздравление, 1 изречение",
+  "mat": ["пълен текст на задача 1", "задача 2", "задача 3", "задача 4", "задача 5"],
+  "bel": ["задача 1", "задача 2", "задача 3", "задача 4", "задача 5"],
+  "lit": {
+    "work": "име на творбата",
+    "author": "автор",
+    "time_estimate": "~10 минути",
+    "questions": ["въпрос 1", "въпрос 2", "въпрос 3"]
+  },
+  "closing": "кратко напомняне за снимка до 17:00ч"
+}
+Във ВСИЧКИ останали съобщения (отговори на ученика, обратна връзка, въпроси) — отговаряй на чист разговорен български текст, БЕЗ JSON, без markdown форматиране (без **, без ##).`;
+
+// ── DOM refs ──
+const messagesEl = document.getElementById('messages');
+const inputEl    = document.getElementById('user-input');
+const sendBtn    = document.getElementById('send-btn');
+const quickRepliesEl = document.getElementById('quick-replies');
+// Setup screen removed — session starts automatically
+const uploadBtn  = document.getElementById('upload-btn');
+const fileInput  = document.getElementById('file-input');
+const uploadPreview = document.getElementById('upload-preview');
+const previewImg = document.getElementById('preview-img');
+const previewName = document.getElementById('preview-name');
+const removeUpload = document.getElementById('remove-upload');
+const newMissionBtn = document.getElementById('new-mission-btn');
+const themeChip = document.getElementById('theme-chip');
+themeChip.textContent = `${todayTheme.emoji} ${todayTheme.label}`;
+// ── Setup ──
+// Auto-start when page loads — no API key needed
+document.addEventListener('DOMContentLoaded', startSession);
+
+// ── DEMO: симулира пропуснат предходен ден (за реалния продукт това ще идва от Google Sheets) ──
+const DEMO_MISSED_DAY = {
+  active: true, // смени на false за нормално стартиране без напомняне
+  theme: { emoji:'♟️', label:'Шахматна комбинация' },
+  date: 'вчера',
+  done: ['mat','bel'],
+  missing: ['lit'],
+};
+
+function startSession() {
+  const today = new Date();
+  const days = ['неделя','понеделник','вторник','сряда','четвъртък','петък','събота'];
+  addDayLabel(`${days[today.getDay()]}, ${today.toLocaleDateString('bg-BG',{day:'numeric',month:'long'})}`);
+
+  if (DEMO_MISSED_DAY.active) {
+    renderMissedDayPrompt();
+  } else {
+    requestMission();
+  }
+}
+
+function renderMissedDayPrompt() {
+  const d = DEMO_MISSED_DAY;
+  const icon = s => s==='mat'
+    ? '<i class="ti ti-ruler" style="font-size:14px;vertical-align:-2px;color:#4facfe;"></i> МАТ'
+    : s==='bel'
+    ? '<i class="ti ti-pencil" style="font-size:14px;vertical-align:-2px;color:#f7b731;"></i> БЕЛ'
+    : '<i class="ti ti-book-2" style="font-size:14px;vertical-align:-2px;color:#a78bfa;"></i> ЛИТ';
+  const doneLabels = d.done.map(icon).join(' и ');
+  const missingLabels = d.missing.map(icon).join(', ');
+
+  appendRichMessage('coach', `Виждам, че мисията от ${d.date} (${d.theme.emoji} ${d.theme.label}) не е напълно довършена — ${doneLabels} са готови, но ${missingLabels} остава. Лесно е да се отложи, но навикът да довършваме нещата докрай е точно това, което помага най-много преди изпита 💪`);
+
+  const choiceDiv = document.createElement('div');
+  choiceDiv.className = 'msg coach';
+  choiceDiv.innerHTML = `
+    <div class="missed-day-choice">
+      <button class="md-btn primary" id="md-continue">Довърши вчерашната</button>
+      <button class="md-btn secondary" id="md-fresh">Започни нова за днес</button>
+    </div>`;
+  messagesEl.appendChild(choiceDiv);
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+
+  document.getElementById('md-continue').addEventListener('click', () => {
+    choiceDiv.remove();
+    renderDemoYesterdayMission();
+  });
+  document.getElementById('md-fresh').addEventListener('click', () => {
+    choiceDiv.remove();
+    addDayLabel('— Нова мисия за днес —');
+    requestMission();
+  });
+}
+
+function renderDemoYesterdayMission() {
+  // ДЕМО съдържание само за вчерашната недовършена ЛИТ секция (МАТ/БЕЛ вече отметнати)
+  appendMessage('coach', 'Ето къде бяхме спрели — само литературата остава:');
+
+  const card = document.createElement('div');
+  card.className = 'mission-card';
+  card.innerHTML = `
+    <div class="tabs">
+      <div class="tab seen" data-tab="mat" style="opacity:.5;cursor:default">
+        <span class="tab-icon"><i class="ti ti-ruler" aria-hidden="true"></i><span class="seen-check">✅</span></span>
+        <span class="tab-label">МАТ</span>
+        <span class="tab-count" style="font-size:11px;">готово</span>
+      </div>
+      <div class="tab seen" data-tab="bel" style="opacity:.5;cursor:default">
+        <span class="tab-icon"><i class="ti ti-pencil" aria-hidden="true"></i><span class="seen-check">✅</span></span>
+        <span class="tab-label">БЕЛ</span>
+        <span class="tab-count" style="font-size:11px;">готово</span>
+      </div>
+      <div class="tab active lit" data-tab="lit">
+        <span class="tab-icon"><i class="ti ti-book-2" aria-hidden="true"></i></span>
+        <span class="tab-label">ЛИТ</span>
+        <span class="tab-count" style="font-size:11px;">остава</span>
+      </div>
+    </div>
+    <div class="tab-panel lit" data-panel="lit"><div class="section-tag"><i class="ti ti-book-2" aria-hidden="true"></i> Литература</div></div>
+    <div class="mission-footer">
+      <div class="mission-footer-photo">📷 Качи снимка с отговорите, щом приключиш.</div>
+      <div class="chess-reward locked">
+        <div class="chess-reward-inner">
+          <span class="chess-reward-icon">♟️</span>
+          <div class="chess-reward-text">
+            <div class="chess-reward-title">Шахматна партия с Компас</div>
+            <div class="chess-reward-sub">Качи решението → отключва се достъпът</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  const litPanel = card.querySelector('.tab-panel[data-panel="lit"]');
+  const litCard = document.createElement('div');
+  litCard.className = 'lit-card';
+  litCard.innerHTML = `
+    <div class="lit-card-top">
+      <div class="lit-icon">📜</div>
+      <div><div class="lit-work">„Косачи"</div><div class="lit-author">Елин Пелин</div></div>
+    </div>
+    <div class="lit-time">⏱ ~10 минути</div>`;
+  litPanel.appendChild(litCard);
+  const questions = [
+    'Какво правят косачите в разказа и как е описан техният труд?',
+    'Каква е ролята на природата в настроението на разказа?',
+    'Какво показва отношението на разказвача към работата на хората?',
+  ];
+  questions.forEach((q,i) => {
+    const row = document.createElement('div');
+    row.className = 'task-row lit';
+    row.innerHTML = `<div class="task-badge">${i+1}</div><div class="task-text"></div>`;
+    row.querySelector('.task-text').textContent = q;
+    litPanel.appendChild(row);
+  });
+
+  messagesEl.appendChild(card);
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+  updateChessButtons();
+}
+
+newMissionBtn.addEventListener('click', () => {
+  if (isLoading) return;
+  conversationHistory = [];
+  addDayLabel('— Нова мисия —');
+  requestMission();
+});
+
+async function requestMission() {
+  // Try to load pre-generated mission from KV cache first
+  const typingEl = appendTyping();
+  try {
+    const res = await fetch(WEBHOOK_URL + '/mission');
+    if (res.ok) {
+      const data = await res.json();
+      const mission = data.mission;
+      const theme = data.theme || todayTheme;
+      // Update theme chip with cached theme
+      if (theme) themeChip.textContent = `${theme.emoji} ${theme.label}`;
+      typingEl.remove();
+      if (mission && mission.mat) {
+        const introText = mission.intro || '';
+        const themeEl = appendRichMessage('coach',
+          `${introText ? introText + '<br><br>' : ''}Темата за днес: <strong style="color:${getThemeColor(theme)}">${theme.emoji} ${theme.label}</strong> — ще я намериш вплетена в задачите.`,
+          null, 'featured'
+        );
+        appendMissionCard(mission, true);
+        // Scroll to day label separator — shows the whole new mission context
+        setTimeout(() => {
+          const target = lastDayLabel || themeEl;
+          const y = target.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+        }, 250);
+        if (mission.closing) appendMessage('coach', mission.closing);
+        setQuickReplies();
+      } else {
+        generateMissionOnDemand();
+      }
+      return;
+    }
+  } catch(e) {
+    // Fallback to on-demand generation
+  }
+  typingEl.remove();
+  generateMissionOnDemand();
+}
+
+function getThemeColor(theme) {
+  const hints = { 'шах': '#f7b731', 'кристали': '#a78bfa', 'химия': '#4facfe', '3D': '#4facfe', 'минерали': '#4cdb8a' };
+  for (const [k, v] of Object.entries(hints)) {
+    if ((theme?.hint || '').toLowerCase().includes(k)) return v;
+  }
+  return '#a78bfa';
+}
+
+function generateMissionOnDemand() {
+  const prompt = `ГЕНЕРИРАЙ_МИСИЯ: Тема на деня: "${todayTheme.hint}". Вплети темата в поне една МАТ задача (например текстова задача с този контекст).`;
+  callClaude(prompt, true, true);
+}
+
+// ── File upload (с компресия до <4MB преди изпращане към API) ──
+uploadBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const original = e.target.result;
+    compressImage(original, 4 * 1024 * 1024, (compressed) => {
+      pendingImageBase64 = compressed.split(',')[1];
+      pendingImageType = 'image/jpeg';
+      previewImg.src = compressed;
+      previewName.textContent = file.name;
+      uploadPreview.classList.add('visible');
+    });
+  };
+  reader.readAsDataURL(file);
+  fileInput.value = '';
+});
+removeUpload.addEventListener('click', clearUpload);
+
+function compressImage(dataUrl, maxBytes, callback) {
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    // Max dimension 1600px — достатъчно за четене на ръкопис
+    const MAX_DIM = 1600;
+    let w = img.width, h = img.height;
+    if (w > MAX_DIM || h > MAX_DIM) {
+      if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+      else       { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+    }
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+    // Намаляй качеството докато не е под maxBytes
+    let quality = 0.85;
+    let result = canvas.toDataURL('image/jpeg', quality);
+    while (result.length * 0.75 > maxBytes && quality > 0.3) {
+      quality -= 0.1;
+      result = canvas.toDataURL('image/jpeg', quality);
+    }
+    callback(result);
+  };
+  img.src = dataUrl;
+}
+function clearUpload() {
+  pendingImageBase64 = null; pendingImageType = null;
+  uploadPreview.classList.remove('visible'); previewImg.src = '';
+}
+
+// ── Messaging ──
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} });
+inputEl.addEventListener('input', () => { inputEl.style.height='auto'; inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'; });
+
+function sendMessage() {
+  const text = inputEl.value.trim();
+  if((!text && !pendingImageBase64) || isLoading) return;
+  const contentParts = [];
+  if(pendingImageBase64) contentParts.push({type:'image',source:{type:'base64',media_type:pendingImageType||'image/jpeg',data:pendingImageBase64}});
+  if(text) contentParts.push({type:'text',text});
+  appendMessage('user', text, pendingImageBase64 ? `data:${pendingImageType};base64,${pendingImageBase64}` : null);
+  inputEl.value = ''; inputEl.style.height='auto';
+  // track if this message had a photo (for chess unlock)
+  lastMessageHadImage = contentParts.some(p => p.type === 'image');
+  // decide message format based on contentParts itself (BEFORE clearUpload resets pendingImageBase64)
+  const isSingleTextOnly = contentParts.length === 1 && contentParts[0].type === 'text';
+  conversationHistory.push({role:'user', content: isSingleTextOnly ? text : contentParts});
+  clearUpload(); clearQuickReplies();
+  callClaude(null, false, false);
+}
+
+async function callClaude(content, isSystem, expectJSON) {
+  isLoading = true; sendBtn.disabled = true;
+  if(isSystem) conversationHistory.push({role:'user', content});
+  const typingEl = appendTyping();
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({system_prompt: SYSTEM_PROMPT, messages: conversationHistory})
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const reply = data.content.map(b=>b.text||'').join('');
+    conversationHistory.push({role:'assistant', content:reply});
+    typingEl.remove();
+
+    if (expectJSON) {
+      const mission = parseMissionJSON(reply);
+      if (mission) {
+        if (mission.intro) appendMessage('coach', mission.intro);
+        appendMissionCard(mission);
+        if (mission.closing) appendMessage('coach', mission.closing);
+      } else {
+        appendMessage('coach', reply); // fallback if JSON parse fails
+      }
+    } else {
+      appendMessage('coach', cleanMarkdown(reply));
+    }
+    setQuickReplies();
+    // Следи снимки с обратна връзка (трябват PHOTOS_REQUIRED за unlock)
+    if (lastMessageHadImage) {
+      lastMessageHadImage = false;
+      if (!chessUnlocked) {
+        photoReviewCount++;
+        if (photoReviewCount >= PHOTOS_REQUIRED) {
+          chessUnlocked = true;
+          updateChessButtons(true);
+          appendMessage('coach', '🏆 Качи всичките — шахматната партия е отключена! Намери я в края на мисията.');
+        } else {
+          updateChessButtons(false); // update progress indicator
+        }
+      }
+    }
+  } catch(err) {
+    typingEl.remove();
+    appendMessage('coach', `⚠️ Грешка: ${err.message}`);
+  }
+  isLoading = false; sendBtn.disabled = false;
+}
+
+function parseMissionJSON(raw) {
+  let s = raw.trim();
+  // strip ```json ... ``` fences if present
+  s = s.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
+  // extract from first { to last }
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start === -1 || end === -1) return null;
+  s = s.slice(start, end + 1);
+  try { return JSON.parse(s); }
+  catch(e) { console.error('JSON parse failed:', e, s.slice(0,300)); return null; }
+}
+
+function cleanMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/^#{1,3}\s+/gm, '')
+    .replace(/^---+$/gm, '')
+    .trim();
+}
+
+// ── Mission card with tabs ──
+function appendMissionCard(mission, skipScroll = false) {
+  const card = document.createElement('div');
+  card.className = 'mission-card';
+
+  card.innerHTML = `
+    <div class="tabs">
+      <button class="tab mat active" data-tab="mat">
+        <span class="tab-icon"><i class="ti ti-ruler" aria-hidden="true"></i><span class="seen-check">✅</span></span>
+        <span class="tab-label">МАТ</span>
+        <span class="tab-count">${(mission.mat||[]).length}</span>
+      </button>
+      <button class="tab bel" data-tab="bel">
+        <span class="tab-icon"><i class="ti ti-pencil" aria-hidden="true"></i><span class="seen-check">✅</span></span>
+        <span class="tab-label">БЕЛ</span>
+        <span class="tab-count">${(mission.bel||[]).length}</span>
+      </button>
+      <button class="tab lit" data-tab="lit">
+        <span class="tab-icon"><i class="ti ti-book-2" aria-hidden="true"></i><span class="seen-check">✅</span></span>
+        <span class="tab-label">ЛИТ</span>
+        <span class="tab-count">${(mission.lit&&mission.lit.questions||[]).length}</span>
+      </button>
+    </div>
+    <div class="tab-panel mat" data-panel="mat"><div class="section-tag"><i class="ti ti-ruler" aria-hidden="true"></i> Математика</div></div>
+    <div class="tab-panel bel" data-panel="bel"><div class="section-tag"><i class="ti ti-pencil" aria-hidden="true"></i> Български</div></div>
+    <div class="tab-panel lit" data-panel="lit"><div class="section-tag"><i class="ti ti-book-2" aria-hidden="true"></i> Литература</div></div>
+    <div class="mission-footer">
+      <div class="mission-footer-photo">📷 Качи снимка с решението до 17:00ч</div>
+      <div class="chess-reward locked" id="chess-reward-main">
+        <div class="chess-reward-inner">
+          <span class="chess-reward-icon">♟️</span>
+          <div class="chess-reward-text">
+            <div class="chess-reward-title">Шахматна партия с Компас</div>
+            <div class="chess-reward-sub">Качи решението → отключва се достъпът</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+
+  // Populate MAT panel
+  const matPanel = card.querySelector('.tab-panel[data-panel="mat"]');
+  (mission.mat||[]).forEach((task, i) => {
+    const row = document.createElement('div');
+    row.className = 'task-row mat';
+    row.style.setProperty('--task-i', i);
+    row.innerHTML = `<div class="task-badge">${i+1}</div><div class="task-text"></div>`;
+    row.querySelector('.task-text').textContent = task;
+    matPanel.appendChild(row);
+  });
+
+  // Populate BEL panel
+  const belPanel = card.querySelector('.tab-panel[data-panel="bel"]');
+  (mission.bel||[]).forEach((task, i) => {
+    const row = document.createElement('div');
+    row.className = 'task-row bel';
+    row.style.setProperty('--task-i', i);
+    row.innerHTML = `<div class="task-badge">${i+1}</div><div class="task-text"></div>`;
+    row.querySelector('.task-text').textContent = task;
+    belPanel.appendChild(row);
+  });
+
+  // Populate LIT panel
+  const litPanel = card.querySelector('.tab-panel[data-panel="lit"]');
+  if (mission.lit) {
+    const litCard = document.createElement('div');
+    litCard.className = 'lit-card';
+    litCard.innerHTML = `
+      <div class="lit-card-top">
+        <div class="lit-icon">📜</div>
+        <div>
+          <div class="lit-work"></div>
+          <div class="lit-author"></div>
+        </div>
+      </div>
+      <div class="lit-time">⏱ ${mission.lit.time_estimate || ''}</div>
+    `;
+    litCard.querySelector('.lit-work').textContent = mission.lit.work || '';
+    litCard.querySelector('.lit-author').textContent = mission.lit.author || '';
+    litPanel.appendChild(litCard);
+
+    const qWrap = document.createElement('div');
+    qWrap.className = 'lit-questions';
+    (mission.lit.questions||[]).forEach((q, i) => {
+      const row = document.createElement('div');
+      row.className = 'task-row lit';
+      row.style.setProperty('--task-i', i);
+      row.innerHTML = `<div class="task-badge">${i+1}</div><div class="task-text"></div>`;
+      row.querySelector('.task-text').textContent = q;
+      qWrap.appendChild(row);
+    });
+    litPanel.appendChild(qWrap);
+  }
+
+  // Tab click → smooth scroll to that section (all sections always visible)
+  card.querySelectorAll('.tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      const panel = card.querySelector(`.tab-panel[data-panel="${tabBtn.dataset.tab}"]`);
+      // Pause observer during manual navigation
+      observerActive = false;
+      // Set active tab immediately
+      card.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tabBtn));
+      panel.scrollIntoView({ behavior:'smooth', block:'start' });
+      // Re-enable observer after scroll settles
+      setTimeout(() => { observerActive = true; }, 900);
+    });
+  });
+
+  // Track which sections have been scrolled past → mark tab as seen
+  // Delay observer activation so initial render doesn't trigger false positives
+  let observerActive = false;
+  setTimeout(() => { observerActive = true; }, 800);
+
+  const observer = new IntersectionObserver((entries) => {
+    if (!observerActive) return;
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const name = entry.target.dataset.panel;
+        const tab = card.querySelector(`.tab[data-tab="${name}"]`);
+        tab.classList.add('seen');
+        card.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t===tab));
+      }
+    });
+  }, { root: null, threshold: 0.6 });
+  card.querySelectorAll('.tab-panel').forEach(p => observer.observe(p));
+
+  messagesEl.appendChild(card);
+  updateChessButtons();
+
+  // Set MAT as active tab immediately
+  card.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'mat'));
+
+  // Scroll to MAT section — only when NOT called from requestMission (which handles scroll itself)
+  if (!skipScroll) {
+    setTimeout(() => {
+      const matPanel = card.querySelector('.tab-panel[data-panel="mat"]');
+      if (matPanel) matPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
+  if (window.renderMathInElement) {
+    renderMathInElement(card, {
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });
+  }
+}
+
+// ── UI helpers ──
+// appendRichMessage — same as appendMessage but uses innerHTML (for Tabler icons in text)
+function appendRichMessage(role, html, imgSrc, extraClass) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = extraClass ? `bubble ${extraClass}` : 'bubble';
+  if(html) bubble.innerHTML = html;
+  if(imgSrc) { const img=document.createElement('img'); img.src=imgSrc; bubble.appendChild(img); }
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  meta.textContent = new Date().toLocaleTimeString('bg-BG',{hour:'2-digit',minute:'2-digit'});
+  div.appendChild(bubble); div.appendChild(meta);
+  messagesEl.appendChild(div);
+  return div;
+}
+
+function appendMessage(role, text, imgSrc) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  if(text) {
+    bubble.textContent = text;
+    if(window.renderMathInElement) {
+      renderMathInElement(bubble, {
+        delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
+        throwOnError:false
+      });
+    }
+  }
+  if(imgSrc) { const img=document.createElement('img'); img.src=imgSrc; bubble.appendChild(img); }
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  meta.textContent = new Date().toLocaleTimeString('bg-BG',{hour:'2-digit',minute:'2-digit'});
+  div.appendChild(bubble); div.appendChild(meta);
+  messagesEl.appendChild(div);
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+  return div;
+}
+
+function appendTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg coach';
+  div.innerHTML = `<div class="typing-bubble"><span></span><span></span><span></span></div>`;
+  messagesEl.appendChild(div);
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+  return div;
+}
+
+function addDayLabel(text) {
+  const div = document.createElement('div');
+  div.className = 'day-label';
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  lastDayLabel = div;
+  return div;
+}
+
+function setQuickReplies() {
+  quickRepliesEl.innerHTML = '';
+  if (chessUnlocked) {
+    const btn = document.createElement('button');
+    btn.className = 'qr'; btn.textContent = '♟️ Играй шах';
+    btn.addEventListener('click', () => openChess());
+    quickRepliesEl.appendChild(btn);
+  }
+}
+
+function clearQuickReplies() { quickRepliesEl.innerHTML = ''; }
+
+// ══════════════════════════════════════════════
+// ── CHESS GAME ──
+// ══════════════════════════════════════════════
+let chess = null;
+let selectedSq = null;
+let validMoves = [];
+let chessThinking = false;
+let chessUnlocked = false;
+let photoReviewCount = 0;      // брой снимки с обратна връзка (трябват 3 за unlock)
+const PHOTOS_REQUIRED = 3;     // по 1 на секция: МАТ, БЕЛ, ЛИТ
+let lastMessageHadImage = false;
+let lastDayLabel = null;
+
+const PIECE_GLYPHS = {
+  wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
+  bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟'
+};
+
+const KOMPAS_FLAVOR = [
+  'Хм, интересен ход...', 'Виждам плана ти 😏', 'Добре обмислено.',
+  'Трябва да внимавам.', 'Не лошо, не лошо.', 'Сериозен си!',
+  'Ок, мой ред.', '🤔 Нека помисля...', 'Учиш бързо!',
+];
+
+const chessOverlay = document.getElementById('chess-overlay');
+const chessBoardEl = document.getElementById('chess-board');
+const chessStatusEl = document.getElementById('chess-status');
+const chessTurnEl = document.getElementById('chess-turn');
+const chessResultEl = document.getElementById('chess-result');
+const chessCloseBtn = document.getElementById('chess-close-btn');
+const chessNewBtn = document.getElementById('chess-new-btn');
+
+chessCloseBtn.addEventListener('click', () => chessOverlay.classList.remove('visible'));
+chessNewBtn.addEventListener('click', initChessGame);
+chessOverlay.addEventListener('click', e => {
+  if(e.target === chessOverlay) chessOverlay.classList.remove('visible');
+});
+
+function openChess() {
+  if (!chessUnlocked) return;
+  chessOverlay.classList.add('visible');
+  if (!chess) initChessGame();
+}
+
+function updateChessButtons(isNewUnlock) {
+  // Show/hide floating button
+  const floatBtn = document.getElementById('chess-float-btn');
+  if (floatBtn) floatBtn.classList.toggle('visible', chessUnlocked);
+
+  document.querySelectorAll('.chess-reward').forEach(card => {
+    if (chessUnlocked) {
+      card.className = 'chess-reward unlocked' + (isNewUnlock ? ' just-unlocked' : '');
+      // Rebuild inner with play button
+      card.innerHTML = `
+        <div class="chess-reward-inner">
+          <span class="chess-reward-icon">♟️</span>
+          <div class="chess-reward-text">
+            <div class="chess-reward-title">Шахматна партия с Компас</div>
+            <div class="chess-reward-sub">Готово за игра! 🏆</div>
+          </div>
+          <button class="chess-play-btn" onclick="openChess()">Играй →</button>
+        </div>`;
+      if (isNewUnlock) {
+        setTimeout(() => card.classList.remove('just-unlocked'), 1500);
+      }
+    } else {
+      card.className = 'chess-reward locked';
+      const remaining = PHOTOS_REQUIRED - photoReviewCount;
+      const progress = photoReviewCount > 0
+        ? `📷 ${photoReviewCount}/${PHOTOS_REQUIRED} снимки качени`
+        : `Качи снимки с решенията, за да отключиш`;
+      card.innerHTML = `
+        <div class="chess-reward-inner">
+          <span class="chess-reward-icon">♟️</span>
+          <div class="chess-reward-text">
+            <div class="chess-reward-title">Шахматна партия с Компас</div>
+            <div class="chess-reward-sub">${progress} — нужни: ${PHOTOS_REQUIRED}</div>
+          </div>
+          <div class="chess-progress-pills">
+            ${Array.from({length: PHOTOS_REQUIRED}, (_, i) =>
+              `<span class="chess-pip ${i < photoReviewCount ? 'done' : ''}"></span>`
+            ).join('')}
+          </div>
+        </div>`;
+    }
+  });
+}
+
+function initChessGame() {
+  chess = new Chess();
+  selectedSq = null;
+  validMoves = [];
+  chessThinking = false;
+  chessResultEl.style.display = 'none';
+  chessStatusEl.textContent = 'Ти си Бели ♔ — направи първия ход!';
+  chessStatusEl.className = 'chess-status';
+  renderChessBoard();
+  updateTurnIndicator();
+}
+
+function renderChessBoard() {
+  chessBoardEl.innerHTML = '';
+  const board = chess.board(); // 8x8 array, rank 8 first
+  for (let r = 0; r < 8; r++) {
+    for (let f = 0; f < 8; f++) {
+      const sq = String.fromCharCode(97+f) + (8-r); // e.g. 'e4'
+      const cell = board[r][f];
+      const isLight = (r + f) % 2 === 0;
+      const div = document.createElement('div');
+      div.className = 'sq ' + (isLight ? 'light' : 'dark');
+      div.dataset.sq = sq;
+
+      if (selectedSq === sq) div.classList.add('selected');
+      if (validMoves.includes(sq)) {
+        div.classList.add(cell ? 'valid-capture' : 'valid-move');
+      }
+      if (cell) div.textContent = PIECE_GLYPHS[cell.color + cell.type.toUpperCase()] || '';
+
+      div.addEventListener('click', () => handleChessClick(sq));
+      chessBoardEl.appendChild(div);
+    }
+  }
+}
+
+function handleChessClick(sq) {
+  if (chess.game_over() || chessThinking || chess.turn() !== 'w') return;
+
+  const piece = chess.get(sq);
+
+  if (selectedSq) {
+    // Try to make move
+    if (validMoves.includes(sq)) {
+      // Check pawn promotion
+      let move = { from: selectedSq, to: sq };
+      const p = chess.get(selectedSq);
+      if (p && p.type === 'p' && (sq[1] === '8' || sq[1] === '1')) move.promotion = 'q';
+
+      const result = chess.move(move);
+      if (result) {
+        selectedSq = null; validMoves = [];
+        renderChessBoard();
+        if (chess.game_over()) { handleChessEnd(); return; }
+        chessThinking = true;
+        chessStatusEl.textContent = KOMPAS_FLAVOR[Math.floor(Math.random()*KOMPAS_FLAVOR.length)];
+        chessStatusEl.className = 'chess-status thinking';
+        updateTurnIndicator();
+        setTimeout(() => getKompasMove(), 800);
+        return;
+      }
+    }
+    // Deselect or select new piece
+    selectedSq = null; validMoves = [];
+    if (piece && piece.color === 'w') {
+      selectedSq = sq;
+      validMoves = chess.moves({square: sq, verbose: true}).map(m => m.to);
+    }
+  } else {
+    if (piece && piece.color === 'w') {
+      selectedSq = sq;
+      validMoves = chess.moves({square: sq, verbose: true}).map(m => m.to);
+    }
+  }
+  renderChessBoard();
+}
+
+async function getKompasMove() {
+  const allMoves = chess.moves();
+  if (!allMoves.length) { handleChessEnd(); return; }
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system_prompt: `Ти играеш шах на ниво ~1300 ELO. Правиш предимно добри ходове, но понякога допускаш малки грешки, за да може опонентът (12-годишно момче) да има реален шанс да спечели. Отговаряй САМО с един ход в SAN нотация, нищо друго.`,
+        messages: [{
+          role: 'user',
+          content: `FEN: ${chess.fen()}\nВалидни ходове: ${allMoves.join(', ')}\nИзбери един ход за Черни.`
+        }]
+      })
+    });
+    const data = await res.json();
+    const rawMove = (data.content?.[0]?.text || '').trim().replace(/[.!?]/g,'').split(' ')[0];
+
+    // Validate the move is in allMoves list
+    const move = allMoves.find(m => m === rawMove) || allMoves[Math.floor(Math.random()*allMoves.length)];
+    chess.move(move);
+  } catch(e) {
+    // Fallback to random move
+    const moves = chess.moves();
+    if (moves.length) chess.move(moves[Math.floor(Math.random()*moves.length)]);
+  }
+
+  chessThinking = false;
+  selectedSq = null; validMoves = [];
+  renderChessBoard();
+  updateTurnIndicator();
+
+  if (chess.game_over()) { handleChessEnd(); return; }
+
+  if (chess.in_check()) {
+    chessStatusEl.textContent = '⚠️ Шах! Защити краля.';
+  } else {
+    chessStatusEl.textContent = 'Твой ред — Бели ♔';
+  }
+  chessStatusEl.className = 'chess-status';
+}
+
+function updateTurnIndicator() {
+  chessTurnEl.textContent = chess.turn() === 'w' ? 'На ход: ⬜ Бели (ти)' : 'На ход: ⬛ Черни (Компас)';
+}
+
+function handleChessEnd() {
+  chessResultEl.style.display = 'block';
+  if (chess.in_checkmate()) {
+    if (chess.turn() === 'b') {
+      chessResultEl.textContent = '🏆 Спечели! Мат на Компас!';
+      chessResultEl.className = 'chess-result win';
+      chessStatusEl.textContent = 'Честито! Сигурно си учил добре 😄';
+    } else {
+      chessResultEl.textContent = '♟️ Компас спечели. Пробвай пак!';
+      chessResultEl.className = 'chess-result lose';
+      chessStatusEl.textContent = 'Следващия път ще е по-трудно да ме победиш 😏';
+    }
+  } else if (chess.in_draw()) {
+    chessResultEl.textContent = '🤝 Реми!';
+    chessResultEl.className = 'chess-result draw';
+    chessStatusEl.textContent = 'Добра игра и от двете страни.';
+  }
+  chessStatusEl.className = 'chess-status';
+}
+</script>
+</body>
+</html>
