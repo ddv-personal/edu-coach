@@ -1,0 +1,190 @@
+/* ============================================================
+   NVO PREP COACH — FOUNDATIONAL DESIGN TOKENS
+   Version 1.0
+   Owner: Design System & Visual Design Lead
+
+   Principle: every visual value in the product should trace
+   back to a token here. No hex codes, px values, or font
+   sizes hardcoded in components — reference the token.
+
+   Rationale for the overall direction is documented in
+   design-system-foundations.md. This file is the literal,
+   implementable source of truth.
+   ============================================================ */
+
+:root {
+
+  /* ----------------------------------------------------------
+     COLOR — PRIMARY (Trust / Focus)
+     Deep, calm blue. Used for primary actions, links, active
+     nav states, and the main brand presence. Never used for
+     large background fills — it reads as heavy at scale.
+     ---------------------------------------------------------- */
+  --color-primary-900: #0F2A4A;   /* high-emphasis text on light bg, dark-mode surfaces */
+  --color-primary-700: #1D4E89;   /* primary buttons, links, active states — main brand color */
+  --color-primary-500: #3B72B0;   /* hover/pressed variant, secondary emphasis */
+  --color-primary-100: #E3EDF7;   /* selected-row tint, subtle highlight backgrounds */
+  --color-primary-50:  #F3F7FC;   /* faint background wash, e.g. info banners */
+
+  /* ----------------------------------------------------------
+     COLOR — ACCENT (Progress / Achievement)
+     Warm, muted gold. Reserved for milestones, streaks,
+     badges, and celebratory moments. Deliberately used
+     sparingly — if it appears on every screen it stops
+     meaning "achievement."
+     ---------------------------------------------------------- */
+  --color-accent-600: #C98A2B;
+  --color-accent-400: #E3A94F;
+  --color-accent-100: #FBEED9;
+
+  /* ----------------------------------------------------------
+     COLOR — SEMANTIC
+     Muted, not saturated. A 12-year-old sees these during
+     timed, high-stakes exam prep — a harsh red or neon green
+     reads as alarming/gamey. Meaning is never carried by
+     color alone; always pair with an icon and/or text label.
+     ---------------------------------------------------------- */
+  --color-success-600: #3F8F6C;
+  --color-success-100: #E1F0E8;
+
+  --color-warning-600: #B8792E;
+  --color-warning-100: #F6EBDA;
+
+  --color-error-600:   #B5473D;
+  --color-error-100:   #F7E6E4;
+
+  --color-info-600:    var(--color-primary-700);
+  --color-info-100:    var(--color-primary-50);
+
+  /* ----------------------------------------------------------
+     COLOR — NEUTRALS
+     Warm greys (not blue-grey). Blue-grey neutrals read as
+     "corporate SaaS dashboard" — warm neutrals feel closer to
+     paper/notebook, which is calmer and more appropriate for
+     a study product.
+     ---------------------------------------------------------- */
+  --color-neutral-900: #23201C;   /* primary text */
+  --color-neutral-700: #4A4540;   /* secondary text */
+  --color-neutral-500: #8B8580;   /* tertiary text, placeholders, disabled */
+  --color-neutral-300: #D8D3CC;   /* borders, dividers */
+  --color-neutral-100: #F2EFEA;   /* subtle surface fills, hover on neutral bg */
+  --color-neutral-50:  #FAF8F5;   /* app background — warm off-white, not stark white */
+
+  --color-surface:     #FFFFFF;   /* card / sheet background — pure white for lift against warm bg */
+  --color-surface-alt: var(--color-neutral-50);
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY — FONT FAMILY
+     Inter: strong native Cyrillic support (required — content
+     is Bulgarian), neutral geometric-humanist shape, free,
+     variable-weight. One family across the whole product —
+     do not introduce a second UI family. An optional serif
+     for printed/parent-report headlines is a separate,
+     explicitly-opt-in decision (see foundations doc).
+     ---------------------------------------------------------- */
+  --font-family-base: "Inter", "Helvetica Neue", Arial, sans-serif;
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY — SCALE
+     Base body size is 17px, not the common 14–16px default:
+     the primary readers are 10–14 years old doing sustained
+     reading-comprehension work, so a larger base reduces eye
+     strain without looking like a "kids app."
+     Naming: role-based, not t-shirt sizes (h1/h2 vs sm/md) —
+     ties each token to where it's used, not just its size.
+     ---------------------------------------------------------- */
+  --font-size-display: 2rem;      /* 32px — rare, hero moments only */
+  --line-height-display: 2.5rem;  /* 40px */
+  --font-weight-display: 700;
+
+  --font-size-h1: 1.75rem;        /* 28px — screen titles */
+  --line-height-h1: 2.25rem;      /* 36px */
+  --font-weight-h1: 700;
+
+  --font-size-h2: 1.375rem;       /* 22px — section headers */
+  --line-height-h2: 1.875rem;     /* 30px */
+  --font-weight-h2: 600;
+
+  --font-size-h3: 1.125rem;       /* 18px — card titles, subsections */
+  --line-height-h3: 1.625rem;     /* 26px */
+  --font-weight-h3: 600;
+
+  --font-size-body-lg: 1.0625rem; /* 17px — exercise prompts, reading passages */
+  --line-height-body-lg: 1.625rem;/* 26px */
+  --font-weight-body-lg: 400;
+
+  --font-size-body: 0.9375rem;    /* 15px — default UI text */
+  --line-height-body: 1.5rem;     /* 24px */
+  --font-weight-body: 400;
+
+  --font-size-body-sm: 0.8125rem; /* 13px — secondary info, metadata */
+  --line-height-body-sm: 1.25rem; /* 20px */
+  --font-weight-body-sm: 400;
+
+  --font-size-label: 0.8125rem;   /* 13px — buttons, tags, form labels */
+  --line-height-label: 1rem;      /* 16px */
+  --font-weight-label: 600;
+  --letter-spacing-label: 0.01em; /* subtle only — heavy tracking reads corporate */
+
+  --font-size-caption: 0.75rem;   /* 12px — timestamps, helper text */
+  --line-height-caption: 1rem;    /* 16px */
+  --font-weight-caption: 400;
+
+  /* ----------------------------------------------------------
+     SPACING — 8pt grid, 4px base unit
+     Every margin/padding/gap in the product should be one of
+     these values. This is what makes disparate screens feel
+     like one product even when built at different times.
+     ---------------------------------------------------------- */
+  --space-2xs: 0.25rem;  /* 4px  — icon-to-label gap, tight inline spacing */
+  --space-xs:  0.5rem;   /* 8px  — compact internal padding */
+  --space-sm:  0.75rem;  /* 12px — form field internal padding */
+  --space-md:  1rem;     /* 16px — default component padding, base gap */
+  --space-lg:  1.5rem;   /* 24px — card padding, spacing between related elements */
+  --space-xl:  2rem;     /* 32px — spacing between distinct groups */
+  --space-2xl: 3rem;     /* 48px — section breaks */
+  --space-3xl: 4rem;     /* 64px — major page-level separation */
+  --space-4xl: 6rem;     /* 96px — hero/empty-state vertical rhythm */
+
+  /* ----------------------------------------------------------
+     RADIUS
+     Rounded but not pill-shaped by default — soft enough to
+     feel approachable, structured enough to feel premium
+     rather than "app for toddlers."
+     ---------------------------------------------------------- */
+  --radius-sm:   0.5rem;   /* 8px  — inputs, chips, small controls */
+  --radius-md:   0.75rem;  /* 12px — buttons, default card radius */
+  --radius-lg:   1.25rem;  /* 20px — large cards, modals, sheets */
+  --radius-full: 999px;    /* pills, avatars, badges */
+
+  /* ----------------------------------------------------------
+     ELEVATION
+     Warm-tinted shadows (neutral-900 base, not pure black) —
+     keeps shadows feeling soft/paper-like rather than harsh.
+     Use sparingly: elevation implies "this floats above the
+     page," not "this is decorated."
+     ---------------------------------------------------------- */
+  --shadow-1: 0 1px 2px rgba(35, 32, 28, 0.06);                    /* resting card */
+  --shadow-2: 0 4px 12px rgba(35, 32, 28, 0.08);                   /* raised / hover */
+  --shadow-3: 0 12px 32px rgba(35, 32, 28, 0.14);                  /* modal / overlay */
+
+  /* ----------------------------------------------------------
+     MOTION
+     Ease-out only. No spring/bounce curves anywhere in the
+     product — bounce reads as playful/gamified, which
+     conflicts with the calm-confidence brand goal.
+     ---------------------------------------------------------- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --easing-standard:   cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ----------------------------------------------------------
+     FOCUS / ACCESSIBILITY
+     ---------------------------------------------------------- */
+  --focus-ring-color:  var(--color-primary-700);
+  --focus-ring-width:  2px;
+  --focus-ring-offset: 2px;
+  --min-touch-target:  44px;
+}
